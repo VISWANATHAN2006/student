@@ -6,7 +6,7 @@ from app.database import Base, engine
 # Import all models so SQLAlchemy knows about every table before create_all() runs
 from app.models import academic, student, staff, academic_records  # noqa: F401
 
-app = FastAPI(title="BIEW Connect API", version="1.0.0")
+app = FastAPI(title="Student Management", version="1.0.0")
 
 # Allow the React Native app (and browser testing) to call this API.
 # For a real production app, replace "*" with your actual app's origin.
