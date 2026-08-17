@@ -5,9 +5,11 @@ from app.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token
 from app.models.student import Student
 from app.models.staff import Staff, StaffRole
+from app.models.admin import Admin
 from app.schemas.auth import (
     StudentRegisterRequest,
     StaffRegisterRequest,
+    AdminRegisterRequest,
     LoginRequest,
     TokenResponse,
     MessageResponse,
@@ -63,14 +65,33 @@ def register_staff(payload: StaffRegisterRequest, db: Session = Depends(get_db))
     return {"message": "Staff registered successfully"}
 
 
+@router.post("/register/admin", response_model=MessageResponse)
+def register_admin(payload: AdminRegisterRequest, db: Session = Depends(get_db)):
+    existing = db.query(Admin).filter(Admin.email == payload.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    admin = Admin(
+        full_name=payload.full_name,
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+        designation=payload.designation or "Principal",
+    )
+    db.add(admin)
+    db.commit()
+    return {"message": "Admin registered successfully"}
+
+
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     if payload.user_type == "student":
         user = db.query(Student).filter(Student.email == payload.email).first()
     elif payload.user_type == "staff":
         user = db.query(Staff).filter(Staff.email == payload.email).first()
+    elif payload.user_type == "admin":
+        user = db.query(Admin).filter(Admin.email == payload.email).first()
     else:
-        raise HTTPException(status_code=400, detail="user_type must be student or staff")
+        raise HTTPException(status_code=400, detail="user_type must be student, staff, or admin")
 
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password")

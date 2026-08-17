@@ -1,15 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 from app.database import Base, engine
 
-# Import all models so SQLAlchemy knows about every table before create_all() runs
-from app.models import academic, student, staff, academic_records  # noqa: F401
+from app.models import academic, student, staff, academic_records, files, notification, admin  # noqa: F401
 
-app = FastAPI(title="Student Management", version="1.0.0")
+app = FastAPI(title="Student Management API", version="1.0.0")
 
-# Allow the React Native app (and browser testing) to call this API.
-# For a real production app, replace "*" with your actual app's origin.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,11 +17,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
 
 @app.on_event("startup")
 def on_startup():
-    # Creates any tables that don't exist yet in MySQL. Safe to run every time —
-    # it never touches tables/columns that already exist.
     Base.metadata.create_all(bind=engine)
 
 
@@ -42,3 +43,21 @@ app.include_router(attendance.router, prefix="/attendance", tags=["Attendance"])
 
 from app.routers import marks  # noqa: E402
 app.include_router(marks.router, prefix="/marks", tags=["Marks"])
+
+from app.routers import notes  # noqa: E402
+app.include_router(notes.router, prefix="/notes", tags=["Notes"])
+
+from app.routers import question_bank  # noqa: E402
+app.include_router(question_bank.router, prefix="/question-bank", tags=["Question Bank"])
+
+from app.routers import notifications  # noqa: E402
+app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+
+from app.routers import students  # noqa: E402
+app.include_router(students.router, prefix="/students", tags=["Student Dashboard"])
+
+from app.routers import staff as staff_router  # noqa: E402
+app.include_router(staff_router.router, prefix="/staff", tags=["Staff Dashboard"])
+
+from app.routers import admin  # noqa: E402
+app.include_router(admin.router, prefix="/admin", tags=["Admin (Principal)"])

@@ -24,7 +24,7 @@ class MarksResponse(BaseModel):
 
 class BulkUploadRowResult(BaseModel):
     reg_no: str
-    status: str  # "valid" | "error"
+    status: str
     reason: Optional[str] = None
 
 
@@ -32,3 +32,16 @@ class BulkUploadResponse(BaseModel):
     total_rows: int
     saved: int
     errors: List[BulkUploadRowResult]
+
+
+class ClassMarksSheetRow(BaseModel):
+    student_id: int
+    reg_no: str
+    full_name: str
+    marks: dict[str, Optional[float]]
+    total: float
+
+
+class ClassMarksSheetResponse(BaseModel):
+    assessment_columns: List[str]
+    rows: List[ClassMarksSheetRow]

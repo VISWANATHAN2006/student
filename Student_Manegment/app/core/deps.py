@@ -1,23 +1,27 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.core.security import decode_access_token
 from app.models.student import Student
 from app.models.staff import Staff
+from app.models.admin import Admin
 
-# tokenUrl is just for Swagger UI's "Authorize" button — it points at our login route
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+bearer_scheme = HTTPBearer()
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    token = credentials.credentials
     payload = decode_access_token(token)
     if payload is None:
         raise credentials_exception
@@ -31,6 +35,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user = db.query(Student).filter(Student.id == int(user_id)).first()
     elif user_type == "staff":
         user = db.query(Staff).filter(Staff.id == int(user_id)).first()
+    elif user_type == "admin":
+        user = db.query(Admin).filter(Admin.id == int(user_id)).first()
     else:
         raise credentials_exception
 
@@ -49,4 +55,10 @@ def require_staff(current=Depends(get_current_user)):
 def require_student(current=Depends(get_current_user)):
     if current["user_type"] != "student":
         raise HTTPException(status_code=403, detail="Student access only")
+    return current
+
+
+def require_admin(current=Depends(get_current_user)):
+    if current["user_type"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access only")
     return current

@@ -25,10 +25,17 @@ class StaffRegisterRequest(BaseModel):
     department: Optional[str] = None
 
 
+class AdminRegisterRequest(BaseModel):
+    full_name: str
+    email: EmailStr
+    password: str
+    designation: Optional[str] = "Principal"
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
-    user_type: str  # "student" | "staff"
+    user_type: str  # "student" | "staff" | "admin"
 
 
 class TokenResponse(BaseModel):
