@@ -1,0 +1,285 @@
+import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import {
+  GraduationCap,
+  Users,
+  ShieldCheck,
+  Mail,
+  Lock,
+  ArrowRight,
+  Zap,
+  ChevronLeft,
+  Server,
+} from 'lucide-react';
+
+export const LoginPage = ({
+  initialRole = 'student',
+  onNavigateRegister,
+  onNavigateBack,
+}) => {
+  const [role, setRole] = useState(initialRole);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const { login, loginDemo, backendOnline } = useAuth();
+  const toast = useToast();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.warning('Please enter both email and password');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await login(email, password, role);
+      toast.success(`Welcome back! Signed in as ${role.toUpperCase()}`);
+    } catch (err) {
+      toast.error(err.message || 'Login failed. Check your credentials or start FastAPI server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoSignIn = (selectedRole) => {
+    loginDemo(selectedRole || role);
+    toast.success(`Signed in as Demo ${selectedRole || role}!`);
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem 1.5rem',
+        background: 'var(--bg-main)',
+        position: 'relative',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '460px',
+        }}
+      >
+        {/* Back button */}
+        <button
+          onClick={onNavigateBack}
+          className="btn-ghost btn-sm"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}
+        >
+          <ChevronLeft size={16} /> Back to Home
+        </button>
+
+        {/* Card */}
+        <div className="card card-glow glass-panel" style={{ padding: '2.25rem' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+            <div
+              style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--grad-primary)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '0.85rem',
+                boxShadow: '0 8px 18px rgba(99, 102, 241, 0.4)',
+              }}
+            >
+              <GraduationCap size={26} color="#fff" />
+            </div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Sign In to BIEW Connect</h2>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+              Select your role and enter your credentials
+            </p>
+          </div>
+
+          {/* Role Switcher Tabs */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '0.4rem',
+              background: 'rgba(0, 0, 0, 0.25)',
+              padding: '0.35rem',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setRole('student')}
+              style={{
+                padding: '0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.35rem',
+                background: role === 'student' ? 'var(--primary-600)' : 'transparent',
+                color: role === 'student' ? '#fff' : 'var(--text-secondary)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <GraduationCap size={15} /> Student
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRole('staff')}
+              style={{
+                padding: '0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.35rem',
+                background: role === 'staff' ? 'var(--accent-cyan)' : 'transparent',
+                color: role === 'staff' ? '#fff' : 'var(--text-secondary)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Users size={15} /> Staff
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRole('admin')}
+              style={{
+                padding: '0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.35rem',
+                background: role === 'admin' ? 'var(--accent-rose)' : 'transparent',
+                color: role === 'admin' ? '#fff' : 'var(--text-secondary)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <ShieldCheck size={15} /> Admin
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="email"
+                  className="form-input"
+                  placeholder={
+                    role === 'student'
+                      ? 'student@biew.edu.in'
+                      : role === 'staff'
+                      ? 'staff@biew.edu.in'
+                      : 'admin@biew.edu.in'
+                  }
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{ paddingLeft: '2.5rem' }}
+                  required
+                />
+                <Mail
+                  size={17}
+                  color="var(--text-muted)"
+                  style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{ paddingLeft: '2.5rem' }}
+                  required
+                />
+                <Lock
+                  size={17}
+                  color="var(--text-muted)"
+                  style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ width: '100%', marginTop: '0.75rem', padding: '0.8rem' }}
+              disabled={loading}
+            >
+              {loading ? 'Authenticating...' : `Sign in as ${role.toUpperCase()}`}
+            </button>
+          </form>
+
+          {/* One-Click Quick Demo Sign-in Box */}
+          <div
+            style={{
+              marginTop: '1.5rem',
+              padding: '1rem',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px dashed var(--border-color)',
+              borderRadius: 'var(--radius-md)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem' }}>
+              ⚡ Instant Evaluation Mode
+            </div>
+            <button
+              type="button"
+              onClick={() => handleDemoSignIn(role)}
+              className="btn btn-secondary btn-sm"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              <Zap size={14} color="#fbbf24" /> Instant Demo Login ({role})
+            </button>
+          </div>
+
+          {/* Register Link */}
+          <div
+            style={{
+              marginTop: '1.5rem',
+              textAlign: 'center',
+              fontSize: '0.875rem',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            Don't have an account yet?{' '}
+            <button
+              onClick={() => onNavigateRegister(role)}
+              style={{
+                color: 'var(--primary-400)',
+                fontWeight: 600,
+                textDecoration: 'underline',
+                cursor: 'pointer',
+              }}
+            >
+              Register here
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
