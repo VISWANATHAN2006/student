@@ -18,6 +18,7 @@ import {
 export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavigateBack }) => {
   const [role, setRole] = useState(initialRole);
   const [classes, setClasses] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
@@ -27,9 +28,9 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
     reg_no: '',
     roll_no: '',
     umis_id: '',
-    department: 'Computer Applications',
+    department: '',
     branch: 'BCA',
-    class_id: '1',
+    class_id: '',
     dob: '',
     email: '',
     password: '',
@@ -41,7 +42,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
     email: '',
     password: '',
     role_type: 'both', // "advisor" | "subject" | "both"
-    department: 'Computer Applications',
+    department: '',
   });
 
   // Admin Form State
@@ -60,17 +61,28 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
         if (list && list.length > 0) {
           setClasses(list);
           setStudentForm((prev) => ({ ...prev, class_id: String(list[0].id) }));
+        } else {
+          setStudentForm((prev) => ({ ...prev, class_id: '' }));
         }
       } catch (err) {
-        // Fallback default mock classes if backend is fresh/empty
-        setClasses([
-          { id: 1, name: 'III BCA - A', department: 'Computer Applications' },
-          { id: 2, name: 'III BCA - B', department: 'Computer Applications' },
-          { id: 3, name: 'II B.Sc CS', department: 'Computer Science' },
-        ]);
+        console.error("Failed to fetch classes:", err);
+        setStudentForm((prev) => ({ ...prev, class_id: '' }));
       }
     };
+
+    const fetchDepartments = async () => {
+      try {
+        const list = await academicApi.getDepartments();
+        if (list && list.length > 0) {
+          setDepartments(list);
+        }
+      } catch (err) {
+        console.error("Failed to fetch departments:", err);
+      }
+    };
+
     fetchClasses();
+    fetchDepartments();
   }, []);
 
   const handleStudentSubmit = async (e) => {
@@ -240,6 +252,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     onChange={(e) => setStudentForm({ ...studentForm, class_id: e.target.value })}
                     required
                   >
+                    <option value="" disabled hidden>Select Class / Section</option>
                     {classes.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} {c.department ? `(${c.department})` : ''}
@@ -278,13 +291,16 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
               <div className="form-grid-2">
                 <div className="form-group">
                   <label className="form-label">Department</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Computer Applications"
+                  <select
+                    className="form-select"
                     value={studentForm.department}
                     onChange={(e) => setStudentForm({ ...studentForm, department: e.target.value })}
-                  />
+                  >
+                    <option value="" disabled hidden>Select Department</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-group">
@@ -391,13 +407,16 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
                 <div className="form-group">
                   <label className="form-label">Department</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Computer Applications"
+                  <select
+                    className="form-select"
                     value={staffForm.department}
                     onChange={(e) => setStaffForm({ ...staffForm, department: e.target.value })}
-                  />
+                  >
+                    <option value="" disabled hidden>Select Department</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

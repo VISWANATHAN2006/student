@@ -39,23 +39,10 @@ export const StudentMarks = () => {
           setSubjectsMap(map);
         }
 
-        if (marksRes.status === 'fulfilled' && marksRes.value && marksRes.value.length > 0) {
+        if (marksRes.status === 'fulfilled' && marksRes.value) {
           setMarksList(marksRes.value);
         } else {
-          // Demo fallback marks
-          setMarksList([
-            { id: 1, subject_id: 1, assessment_type: 'CIA-1', marks_obtained: 18.5, max_marks: 20 },
-            { id: 2, subject_id: 1, assessment_type: 'CIA-2', marks_obtained: 19.0, max_marks: 20 },
-            { id: 3, subject_id: 1, assessment_type: 'Model Exam', marks_obtained: 68.0, max_marks: 75 },
-            { id: 4, subject_id: 2, assessment_type: 'CIA-1', marks_obtained: 17.0, max_marks: 20 },
-            { id: 5, subject_id: 2, assessment_type: 'CIA-2', marks_obtained: 16.5, max_marks: 20 },
-            { id: 6, subject_id: 3, assessment_type: 'CIA-1', marks_obtained: 20.0, max_marks: 20 },
-          ]);
-          setSubjectsMap({
-            1: 'Java & Object Oriented Programming',
-            2: 'Data Structures & Algorithms',
-            3: 'Database Management Systems (RDBMS)',
-          });
+          setMarksList([]);
         }
       } finally {
         setLoading(false);

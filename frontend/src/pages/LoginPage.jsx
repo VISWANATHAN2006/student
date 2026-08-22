@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import logo from '../assets/logo.png';
 import {
   GraduationCap,
   Users,
@@ -82,22 +83,20 @@ export const LoginPage = ({
           <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
             <div
               style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--grad-primary)',
+                width: '80px',
+                height: '80px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '0.85rem',
-                boxShadow: '0 8px 18px rgba(99, 102, 241, 0.4)',
+                marginBottom: '1rem',
+                background: 'transparent',
               }}
             >
-              <GraduationCap size={26} color="#fff" />
+              <img src={logo} alt="College Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Sign In to BIEW Connect</h2>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Sign In to Student Management</h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-              Select your role and enter your credentials
+              Sign in to Student Management as {role === 'student' ? 'Student' : role === 'staff' ? 'Faculty Staff' : 'Administrator'}
             </p>
           </div>
 
@@ -232,29 +231,7 @@ export const LoginPage = ({
             </button>
           </form>
 
-          {/* One-Click Quick Demo Sign-in Box */}
-          <div
-            style={{
-              marginTop: '1.5rem',
-              padding: '1rem',
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px dashed var(--border-color)',
-              borderRadius: 'var(--radius-md)',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem' }}>
-              ⚡ Instant Evaluation Mode
-            </div>
-            <button
-              type="button"
-              onClick={() => handleDemoSignIn(role)}
-              className="btn btn-secondary btn-sm"
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
-              <Zap size={14} color="#fbbf24" /> Instant Demo Login ({role})
-            </button>
-          </div>
+
 
           {/* Register Link */}
           <div

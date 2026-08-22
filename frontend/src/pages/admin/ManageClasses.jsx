@@ -12,6 +12,8 @@ import {
   Building,
   CheckCircle,
   Hash,
+  Trash2,
+  Edit2
 } from 'lucide-react';
 
 export const ManageClasses = () => {
@@ -23,12 +25,17 @@ export const ManageClasses = () => {
   // Modal states
   const [showClassModal, setShowClassModal] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [showEditClassModal, setShowEditClassModal] = useState(false);
+  const [showEditSubjectModal, setShowEditSubjectModal] = useState(false);
 
   // Form states
   const [className, setClassName] = useState('');
   const [department, setDepartment] = useState('Computer Applications');
   const [subjectName, setSubjectName] = useState('');
   const [subjectClassId, setSubjectClassId] = useState('');
+  
+  const [editClassForm, setEditClassForm] = useState({ id: null, name: '', department: '' });
+  const [editSubjectForm, setEditSubjectForm] = useState({ id: null, name: '', class_id: '' });
 
   const toast = useToast();
 
@@ -46,23 +53,13 @@ export const ManageClasses = () => {
           setSubjectClassId(String(classList.value[0].id));
         }
       } else {
-        setClasses([
-          { id: 1, name: 'III BCA - A', department: 'Computer Applications' },
-          { id: 2, name: 'III BCA - B', department: 'Computer Applications' },
-          { id: 3, name: 'II B.Sc CS', department: 'Computer Science' },
-        ]);
+        setClasses([]);
       }
 
       if (subList.status === 'fulfilled' && Array.isArray(subList.value)) {
         setSubjects(subList.value);
       } else {
-        setSubjects([
-          { id: 1, name: 'Java Programming', class_id: 1 },
-          { id: 2, name: 'Data Structures & Algorithms', class_id: 1 },
-          { id: 3, name: 'Database Management Systems', class_id: 1 },
-          { id: 4, name: 'Operating Systems', class_id: 2 },
-          { id: 5, name: 'Computer Networks', class_id: 3 },
-        ]);
+        setSubjects([]);
       }
     } finally {
       setLoading(false);
@@ -103,16 +100,59 @@ export const ManageClasses = () => {
       setShowSubjectModal(false);
       fetchData();
     } catch (err) {
-      // Demo simulated success
-      const newSub = {
-        id: Date.now(),
-        name: subjectName,
-        class_id: parseInt(subjectClassId, 10),
-      };
-      setSubjects((prev) => [...prev, newSub]);
-      toast.success(`Subject "${subjectName}" created successfully!`);
-      setSubjectName('');
-      setShowSubjectModal(false);
+      toast.error('Failed to create subject');
+    }
+  };
+
+  const handleUpdateClass = async (e) => {
+    e.preventDefault();
+    try {
+      await academicApi.updateClass(editClassForm.id, {
+        name: editClassForm.name,
+        department: editClassForm.department,
+      });
+      toast.success('Class updated successfully!');
+      setShowEditClassModal(false);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to update class');
+    }
+  };
+
+  const handleDeleteClass = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this class? This may fail if there are assigned students or subjects.')) return;
+    try {
+      await academicApi.deleteClass(id);
+      toast.success('Class deleted successfully!');
+      fetchData();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || 'Failed to delete class');
+    }
+  };
+
+  const handleUpdateSubject = async (e) => {
+    e.preventDefault();
+    try {
+      await academicApi.updateSubject(editSubjectForm.id, {
+        name: editSubjectForm.name,
+        class_id: parseInt(editSubjectForm.class_id, 10),
+      });
+      toast.success('Subject updated successfully!');
+      setShowEditSubjectModal(false);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to update subject');
+    }
+  };
+
+  const handleDeleteSubject = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this subject?')) return;
+    try {
+      await academicApi.deleteSubject(id);
+      toast.success('Subject deleted successfully!');
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to delete subject');
     }
   };
 
@@ -175,6 +215,7 @@ export const ManageClasses = () => {
                   <th>#</th>
                   <th>Class Name</th>
                   <th>Department</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -183,6 +224,26 @@ export const ManageClasses = () => {
                     <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
                     <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{c.name}</td>
                     <td>{c.department || '—'}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => {
+                            setEditClassForm({ id: c.id, name: c.name, department: c.department || '' });
+                            setShowEditClassModal(true);
+                          }}
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button 
+                          className="btn btn-secondary btn-sm" 
+                          onClick={() => handleDeleteClass(c.id)}
+                          style={{ color: 'var(--accent-red)' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -231,6 +292,7 @@ export const ManageClasses = () => {
                   <th>#</th>
                   <th>Subject Name</th>
                   <th>Mapped Class</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -242,6 +304,26 @@ export const ManageClasses = () => {
                       <Badge variant="cyan" size="sm">
                         {getClassName(s.class_id)}
                       </Badge>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => {
+                            setEditSubjectForm({ id: s.id, name: s.name, class_id: String(s.class_id) });
+                            setShowEditSubjectModal(true);
+                          }}
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button 
+                          className="btn btn-secondary btn-sm" 
+                          onClick={() => handleDeleteSubject(s.id)}
+                          style={{ color: 'var(--accent-red)' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -342,6 +424,87 @@ export const ManageClasses = () => {
             </button>
             <button type="submit" className="btn btn-primary">
               Save Subject
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT CLASS MODAL */}
+      <Modal
+        isOpen={showEditClassModal}
+        onClose={() => setShowEditClassModal(false)}
+        title="Edit Academic Class Section"
+      >
+        <form onSubmit={handleUpdateClass}>
+          <div className="form-group">
+            <label className="form-label">Class / Section Name *</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editClassForm.name}
+              onChange={(e) => setEditClassForm({ ...editClassForm, name: e.target.value })}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Department *</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editClassForm.department}
+              onChange={(e) => setEditClassForm({ ...editClassForm, department: e.target.value })}
+              required
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={() => setShowEditClassModal(false)}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT SUBJECT MODAL */}
+      <Modal
+        isOpen={showEditSubjectModal}
+        onClose={() => setShowEditSubjectModal(false)}
+        title="Edit Subject"
+      >
+        <form onSubmit={handleUpdateSubject}>
+          <div className="form-group">
+            <label className="form-label">Target Class *</label>
+            <select
+              className="form-select"
+              value={editSubjectForm.class_id}
+              onChange={(e) => setEditSubjectForm({ ...editSubjectForm, class_id: e.target.value })}
+              required
+            >
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} {c.department ? `(${c.department})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Subject Course Title *</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editSubjectForm.name}
+              onChange={(e) => setEditSubjectForm({ ...editSubjectForm, name: e.target.value })}
+              required
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={() => setShowEditSubjectModal(false)}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save Changes
             </button>
           </div>
         </form>

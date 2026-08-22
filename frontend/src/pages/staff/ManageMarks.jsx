@@ -110,16 +110,8 @@ export const ManageMarks = () => {
       );
       setSheetData(data);
     } catch (err) {
-      // Demo sheet fallback
-      setSheetData({
-        assessment_columns: ['CIA-1', 'CIA-2', 'Model Exam'],
-        rows: [
-          { student_id: 1, reg_no: '953621104001', full_name: 'Viswanathan R', marks: { 'CIA-1': 19, 'CIA-2': 18.5, 'Model Exam': 70 }, total: 107.5 },
-          { student_id: 2, reg_no: '953621104002', full_name: 'Aravind Kumar M', marks: { 'CIA-1': 16, 'CIA-2': 17.0, 'Model Exam': 65 }, total: 98.0 },
-          { student_id: 3, reg_no: '953621104003', full_name: 'Divya Bharathi S', marks: { 'CIA-1': 20, 'CIA-2': 19.5, 'Model Exam': 73 }, total: 112.5 },
-          { student_id: 4, reg_no: '953621104004', full_name: 'Gowtham Raj P', marks: { 'CIA-1': 14, 'CIA-2': 15.0, 'Model Exam': 58 }, total: 87.0 },
-        ],
-      });
+      setSheetData({ assessment_columns: [], rows: [] });
+      toast.error('Failed to load class marks sheet.');
     } finally {
       setLoadingSheet(false);
     }
@@ -146,7 +138,7 @@ export const ManageMarks = () => {
       setSingleForm((prev) => ({ ...prev, marks_obtained: '' }));
       if (activeTab === 'sheet') loadSheet();
     } catch (err) {
-      toast.success('Marks saved successfully! (Demo simulated)');
+      toast.error('Failed to save mark entry.');
     }
   };
 
@@ -172,14 +164,7 @@ export const ManageMarks = () => {
       setBulkFile(null);
       loadSheet();
     } catch (err) {
-      // Simulation for demo
-      const mockResult = {
-        total_rows: 4,
-        saved: 4,
-        errors: [],
-      };
-      setBulkResult(mockResult);
-      toast.success('Excel Marks sheet processed successfully!');
+      toast.error(err?.response?.data?.detail || 'Failed to process bulk upload.');
     } finally {
       setBulkLoading(false);
     }
@@ -533,10 +518,14 @@ export const ManageMarks = () => {
               }}
             >
               <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                📋 Expected Excel Column Headers:
+                📋 Dynamic Excel Column Headers:
               </div>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                You must include a column named <code>Reg No</code>.
+              </p>
               <p style={{ color: 'var(--text-secondary)' }}>
-                <code>Register Number</code> | <code>Student Name</code> | <code>CIA-1</code> | <code>CIA-2</code> | <code>Model Exam</code>
+                <strong>All other columns</strong> will automatically become assessment names!<br/>
+                <em>Example:</em> <code>Reg No</code> | <code>Unit Test 1</code> | <code>Midterm</code> | <code>Practical</code>
               </p>
             </div>
 

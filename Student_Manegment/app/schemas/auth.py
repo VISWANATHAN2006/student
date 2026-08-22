@@ -44,6 +44,7 @@ class TokenResponse(BaseModel):
     user_type: str
     user_id: int
     full_name: str
+    profile_picture_url: Optional[str] = None
 
 
 class MessageResponse(BaseModel):

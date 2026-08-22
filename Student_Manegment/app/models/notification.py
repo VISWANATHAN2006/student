@@ -20,7 +20,9 @@ class Notification(Base):
     body = Column(Text, nullable=False)
     target_type = Column(Enum(NotificationTarget), nullable=False)
     target_id = Column(Integer, nullable=True)  # class_id or subject_id, null when target_type = all
-    created_by_staff_id = Column(Integer, ForeignKey("staff.id"), nullable=False)
+    created_by_staff_id = Column(Integer, ForeignKey("staff.id"), nullable=True)
+    created_by_admin_id = Column(Integer, ForeignKey("admins.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
     staff = relationship("Staff")
+    admin = relationship("Admin")

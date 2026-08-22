@@ -12,3 +12,4 @@ class Admin(Base):
     password_hash = Column(String(255), nullable=False)
     designation = Column(String(100), default="Principal")
     created_at = Column(DateTime, server_default=func.now())
+    profile_picture_url = Column(String(255), nullable=True)

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import logo from '../../assets/logo.png';
+import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard,
@@ -19,7 +21,7 @@ import {
   LogOut,
 } from 'lucide-react';
 
-export const Sidebar = ({ activeTab, setActiveTab }) => {
+export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
   const { user, logout } = useAuth();
   const role = user?.user_type || 'student';
 
@@ -34,18 +36,21 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
 
   const staffMenu = [
     { id: 'dashboard', label: 'Staff Overview', icon: LayoutDashboard },
-    { id: 'mark-attendance', label: 'Mark Attendance', icon: UserCheck },
+    { id: 'pre-register', label: 'Pre-Register Students', icon: UserCheck },
+    { id: 'mark-attendance', label: 'Mark Attendance', icon: CalendarCheck },
     { id: 'manage-marks', label: 'Manage Marks & Sheet', icon: ClipboardList },
     { id: 'upload-notes', label: 'Upload Study Notes', icon: UploadCloud },
     { id: 'upload-qb', label: 'Upload Question Bank', icon: FileText },
-    { id: 'send-announcement', label: 'Send Announcement', icon: Megaphone },
+    { id: 'announcements', label: 'Announcements & Circulars', icon: Megaphone },
   ];
 
   const adminMenu = [
     { id: 'dashboard', label: 'College Overview', icon: BarChart3 },
-    { id: 'manage-classes', label: 'Classes & Subjects', icon: Layers },
+    { id: 'manage-departments', label: 'Departments', icon: Layers },
+    { id: 'manage-classes', label: 'Classes & Subjects', icon: BookOpen },
     { id: 'manage-staff', label: 'Staff & Assignments', icon: Users },
     { id: 'manage-students', label: 'Students Roster', icon: GraduationCap },
+    { id: 'announcements', label: 'Announcements & Circulars', icon: Megaphone },
   ];
 
   let menuItems = studentMenu;
@@ -53,21 +58,18 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
   else if (role === 'admin') menuItems = adminMenu;
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
         <div
           style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--grad-primary)',
+            width: '40px',
+            height: '40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '1.1rem',
           }}
         >
-          🎓
+          <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
         <div>
           <div style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
@@ -112,11 +114,57 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-color)',
             marginBottom: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
           }}
         >
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Signed in as</div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {user?.full_name || user?.email}
+          <div 
+            style={{ 
+              width: '40px', 
+              height: '40px', 
+              borderRadius: '6px', 
+              background: 'var(--bg-main)', 
+              overflow: 'hidden', 
+              position: 'relative',
+              cursor: 'pointer',
+              border: '1px solid var(--border-color)',
+              flexShrink: 0
+            }}
+            onClick={() => document.getElementById('profile-upload').click()}
+            title="Upload Profile Picture (Passport Size)"
+          >
+            {user?.profile_picture_url ? (
+              <img src={`${apiClient.defaults.baseURL}${user.profile_picture_url}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.7rem', textAlign: 'center', lineHeight: '1' }}>Add<br/>Photo</div>
+            )}
+            <input 
+              type="file" 
+              id="profile-upload" 
+              style={{ display: 'none' }} 
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('file', file);
+                try {
+                  await apiClient.post('/profile/picture', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                  });
+                  window.location.reload();
+                } catch (err) {
+                  alert('Upload failed: ' + (err.response?.data?.detail || err.message));
+                }
+              }}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Signed in as</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.full_name || user?.email}
+            </div>
           </div>
         </div>
 

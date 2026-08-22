@@ -62,3 +62,9 @@ def require_admin(current=Depends(get_current_user)):
     if current["user_type"] != "admin":
         raise HTTPException(status_code=403, detail="Admin access only")
     return current
+
+
+def require_staff_or_admin(current=Depends(get_current_user)):
+    if current["user_type"] not in ("staff", "admin"):
+        raise HTTPException(status_code=403, detail="Staff or Admin access only")
+    return current

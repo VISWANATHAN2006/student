@@ -8,7 +8,7 @@ from app.models.student import Student
 from app.models.academic_records import Marks
 from app.schemas.marks import BulkUploadRowResult
 
-REQUIRED_COLUMNS = {"Reg No", "Assessment 1", "Assessment 2", "Assessment 3"}
+REQUIRED_COLUMNS = {"Reg No"}
 
 
 def process_bulk_marks_excel(
@@ -24,6 +24,10 @@ def process_bulk_marks_excel(
     missing_cols = REQUIRED_COLUMNS - set(df.columns)
     if missing_cols:
         raise ValueError(f"Missing columns in Excel file: {', '.join(missing_cols)}")
+
+    assessment_cols = [c for c in df.columns if str(c).strip() not in ("Reg No", "Student Name")]
+    if not assessment_cols:
+        raise ValueError("No assessment columns found. Please provide at least one column for marks.")
 
     results: List[BulkUploadRowResult] = []
     saved_count = 0
@@ -44,34 +48,37 @@ def process_bulk_marks_excel(
 
         assessment_values = {}
         row_has_error = False
-        for i in (1, 2, 3):
-            col = f"Assessment {i}"
+        for col in assessment_cols:
+            val = row[col]
+            if pd.isna(val) or str(val).strip() == "":
+                continue # Skip empty cells instead of erroring, so we don't block rows with partial marks
+
             try:
-                value = float(row[col])
+                value = float(val)
             except (ValueError, TypeError):
                 results.append(
-                    BulkUploadRowResult(reg_no=reg_no, status="error", reason=f"{col} is not a number")
+                    BulkUploadRowResult(reg_no=reg_no, status="error", reason=f"Column '{col}' contains non-numeric data")
                 )
                 row_has_error = True
                 break
+
             if value < 0 or value > max_marks_per_assessment:
                 results.append(
                     BulkUploadRowResult(
                         reg_no=reg_no,
                         status="error",
-                        reason=f"{col} exceeds max ({max_marks_per_assessment})",
+                        reason=f"Marks for '{col}' exceed maximum ({max_marks_per_assessment})",
                     )
                 )
                 row_has_error = True
                 break
-            assessment_values[i] = value
+            assessment_values[str(col).strip()] = value
 
         if row_has_error:
             continue
 
         # Save each assessment as its own Marks row (overwrite if already exists)
-        for i, value in assessment_values.items():
-            assessment_label = f"Internal - Assessment {i}"
+        for assessment_label, value in assessment_values.items():
             existing = (
                 db.query(Marks)
                 .filter(

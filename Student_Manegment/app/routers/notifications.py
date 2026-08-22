@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.core.deps import get_current_user, require_staff
+from app.core.deps import get_current_user, require_staff_or_admin
 from app.models.notification import Notification, NotificationTarget
 from app.models.student import Student
 from app.models.academic import Subject
@@ -17,9 +17,10 @@ router = APIRouter()
 def send_announcement(
     payload: AnnouncementCreateRequest,
     db: Session = Depends(get_db),
-    current=Depends(require_staff),
+    current=Depends(require_staff_or_admin),
 ):
-    staff = current["user"]
+    user = current["user"]
+    user_type = current["user_type"]
 
     if payload.target_type not in ("all", "class", "subject"):
         raise HTTPException(status_code=400, detail="target_type must be all, class, or subject")
@@ -33,7 +34,8 @@ def send_announcement(
         body=payload.body,
         target_type=target_enum,
         target_id=payload.target_id,
-        created_by_staff_id=staff.id,
+        created_by_staff_id=user.id if user_type == "staff" else None,
+        created_by_admin_id=user.id if user_type == "admin" else None,
     )
     db.add(notification)
     db.commit()
@@ -64,10 +66,13 @@ def get_my_notifications(
             | ((Notification.target_type == NotificationTarget.class_) & (Notification.target_id == student.class_id))
             | ((Notification.target_type == NotificationTarget.subject) & (Notification.target_id.in_(subject_ids)))
         ).order_by(Notification.created_at.desc()).all()
-    else:
+    elif user_type == "staff":
         notifications = query.filter(
             (Notification.target_type == NotificationTarget.all)
             | (Notification.created_by_staff_id == user.id)
         ).order_by(Notification.created_at.desc()).all()
+    else:
+        # admin can see all notifications
+        notifications = query.order_by(Notification.created_at.desc()).all()
 
     return notifications

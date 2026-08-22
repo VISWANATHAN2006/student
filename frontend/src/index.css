@@ -650,10 +650,23 @@ button {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: -260px;
   flex-shrink: 0;
-  transition: width var(--transition-normal);
+  transition: all var(--transition-normal);
+  z-index: 1000;
+}
+
+.sidebar.open {
+  left: 0;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex !important;
+  }
 }
 
 .sidebar-logo {

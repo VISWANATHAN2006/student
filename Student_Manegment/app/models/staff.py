@@ -22,6 +22,7 @@ class Staff(Base):
     role_type = Column(Enum(StaffRole), nullable=False)
     department = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+    profile_picture_url = Column(String(255), nullable=True)
 
     class_assignments = relationship("StaffClassAssignment", back_populates="staff")
     subject_assignments = relationship("StaffSubjectAssignment", back_populates="staff")

@@ -73,8 +73,18 @@ def check_email_availability(email: str, db: Session = Depends(get_db)):
 
 @router.post("/register/student", response_model=MessageResponse)
 def register_student(payload: StudentRegisterRequest, db: Session = Depends(get_db)):
+    from app.models.student import PreRegisteredStudent
+    
     email_clean = payload.email.strip().lower()
     validate_cross_role_email(email_clean, "Student", db)
+
+    # SECURE REGISTRATION: Check if reg_no is in PreRegisteredStudent
+    pre_reg = db.query(PreRegisteredStudent).filter(PreRegisteredStudent.reg_no == payload.reg_no.strip()).first()
+    if not pre_reg:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your Register Number is not authorized for registration. Please contact your staff/admin to get added.",
+        )
 
     existing_reg = db.query(Student).filter(Student.reg_no == payload.reg_no.strip()).first()
     if existing_reg:
@@ -96,6 +106,9 @@ def register_student(payload: StudentRegisterRequest, db: Session = Depends(get_
         password_hash=hash_password(payload.password),
     )
     db.add(student)
+    
+    # Optionally remove or mark pre-registration as used, but we can leave it as a log.
+    
     db.commit()
     return {"message": "Student registered successfully"}
 
@@ -184,4 +197,5 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         user_type=role_type,
         user_id=user.id,
         full_name=user.full_name,
+        profile_picture_url=user.profile_picture_url,
     )

@@ -84,38 +84,13 @@ export const MarkAttendance = () => {
           });
           setAttendanceMap(initialMap);
         } else {
-          // Fallback roster for demonstration
-          const fallback = [
-            { id: 1, full_name: 'Viswanathan R', reg_no: '953621104001', roll_no: '21BCA01' },
-            { id: 2, full_name: 'Aravind Kumar M', reg_no: '953621104002', roll_no: '21BCA02' },
-            { id: 3, full_name: 'Divya Bharathi S', reg_no: '953621104003', roll_no: '21BCA03' },
-            { id: 4, full_name: 'Gowtham Raj P', reg_no: '953621104004', roll_no: '21BCA04' },
-            { id: 5, full_name: 'Karthik S', reg_no: '953621104005', roll_no: '21BCA05' },
-            { id: 6, full_name: 'Meena Kumari V', reg_no: '953621104006', roll_no: '21BCA06' },
-            { id: 7, full_name: 'Praveen Kumar T', reg_no: '953621104007', roll_no: '21BCA07' },
-            { id: 8, full_name: 'Sneha Priya N', reg_no: '953621104008', roll_no: '21BCA08' },
-          ];
-          setStudents(fallback);
-          const initialMap = {};
-          fallback.forEach((s) => {
-            initialMap[s.id] = 'present';
-          });
-          setAttendanceMap(initialMap);
+          setStudents([]);
+          setAttendanceMap({});
         }
       } catch (err) {
-        // Fallback roster
-        const fallback = [
-          { id: 1, full_name: 'Viswanathan R', reg_no: '953621104001', roll_no: '21BCA01' },
-          { id: 2, full_name: 'Aravind Kumar M', reg_no: '953621104002', roll_no: '21BCA02' },
-          { id: 3, full_name: 'Divya Bharathi S', reg_no: '953621104003', roll_no: '21BCA03' },
-          { id: 4, full_name: 'Gowtham Raj P', reg_no: '953621104004', roll_no: '21BCA04' },
-        ];
-        setStudents(fallback);
-        const initialMap = {};
-        fallback.forEach((s) => {
-          initialMap[s.id] = 'present';
-        });
-        setAttendanceMap(initialMap);
+        setStudents([]);
+        setAttendanceMap({});
+        toast.error('Failed to load students.');
       } finally {
         setLoadingStudents(false);
       }
@@ -299,7 +274,6 @@ export const MarkAttendance = () => {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Student Name</th>
                   <th>Register Number</th>
                   <th style={{ textAlign: 'center' }}>Mark Status</th>
                 </tr>
@@ -311,15 +285,7 @@ export const MarkAttendance = () => {
                   return (
                     <tr key={student.id || idx}>
                       <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
-                      <td>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                          {student.full_name}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          Roll: {student.roll_no || `Roll #${idx + 1}`}
-                        </div>
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {student.reg_no}
                       </td>
                       <td>

@@ -33,14 +33,7 @@ export const ManageStudents = () => {
         if (studentRes.status === 'fulfilled' && Array.isArray(studentRes.value)) {
           setStudents(studentRes.value);
         } else {
-          setStudents([
-            { id: 1, full_name: 'Viswanathan R', reg_no: '953621104001', class_name: 'III BCA - A', email: 'student@biew.edu.in' },
-            { id: 2, full_name: 'Aravind Kumar M', reg_no: '953621104002', class_name: 'III BCA - A', email: 'aravind@biew.edu.in' },
-            { id: 3, full_name: 'Divya Bharathi S', reg_no: '953621104003', class_name: 'III BCA - A', email: 'divya@biew.edu.in' },
-            { id: 4, full_name: 'Gowtham Raj P', reg_no: '953621104004', class_name: 'III BCA - B', email: 'gowtham@biew.edu.in' },
-            { id: 5, full_name: 'Karthik S', reg_no: '953621104005', class_name: 'III BCA - B', email: 'karthik@biew.edu.in' },
-            { id: 6, full_name: 'Meena Kumari V', reg_no: '953621104006', class_name: 'II B.Sc CS', email: 'meena@biew.edu.in' },
-          ]);
+          setStudents([]);
         }
 
         if (classRes.status === 'fulfilled' && Array.isArray(classRes.value)) {

@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -5,9 +6,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.core.deps import require_staff, require_admin
 from app.models.staff import Staff, StaffClassAssignment, StaffSubjectAssignment, StaffRole
-from app.models.student import Student
+from app.models.student import Student, PreRegisteredStudent
 from app.models.academic_records import Marks
 from app.schemas.dashboard import StaffDashboardResponse
+from app.schemas.prereg import PreRegBulkCreateRequest, PreRegStudentResponse
 
 router = APIRouter()
 
@@ -108,3 +110,40 @@ def get_staff_dashboard(
         total_students=total_students,
         pending_marks_count=pending_marks_count,
     )
+
+@router.post("/pre-register", response_model=dict)
+def bulk_pre_register_students(
+    payload: PreRegBulkCreateRequest,
+    db: Session = Depends(get_db),
+    current=Depends(require_staff)
+):
+    staff: Staff = current["user"]
+    added_count = 0
+    
+    for s in payload.students:
+        existing = db.query(PreRegisteredStudent).filter(PreRegisteredStudent.reg_no == s.reg_no).first()
+        if existing:
+            existing.full_name = s.full_name
+            existing.department = s.department
+            existing.class_id = s.class_id
+            existing.added_by_staff_id = staff.id
+        else:
+            new_reg = PreRegisteredStudent(
+                reg_no=s.reg_no,
+                full_name=s.full_name,
+                department=s.department,
+                class_id=s.class_id,
+                added_by_staff_id=staff.id
+            )
+            db.add(new_reg)
+        added_count += 1
+        
+    db.commit()
+    return {"message": f"Successfully pre-registered {added_count} students."}
+
+@router.get("/pre-register", response_model=List[PreRegStudentResponse])
+def get_pre_registered_students(
+    db: Session = Depends(get_db),
+    current=Depends(require_staff)
+):
+    return db.query(PreRegisteredStudent).all()

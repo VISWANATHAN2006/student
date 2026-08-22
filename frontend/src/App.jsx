@@ -18,6 +18,7 @@ import { StudentAnnouncements } from './pages/student/StudentAnnouncements';
 
 // Staff Portal Pages
 import { StaffDashboard } from './pages/staff/StaffDashboard';
+import { PreRegisterStudents } from './pages/staff/PreRegisterStudents';
 import { MarkAttendance } from './pages/staff/MarkAttendance';
 import { ManageMarks } from './pages/staff/ManageMarks';
 import { UploadMaterials } from './pages/staff/UploadMaterials';
@@ -25,6 +26,7 @@ import { SendAnnouncement } from './pages/staff/SendAnnouncement';
 
 // Admin Portal Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { ManageDepartments } from './pages/admin/ManageDepartments';
 import { ManageClasses } from './pages/admin/ManageClasses';
 import { ManageStaff } from './pages/admin/ManageStaff';
 import { ManageStudents } from './pages/admin/ManageStudents';
@@ -34,6 +36,7 @@ export const App = () => {
   const [publicView, setPublicView] = useState('landing'); // 'landing' | 'login' | 'register'
   const [initialRole, setInitialRole] = useState('student');
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Reset tab to dashboard on user/role change
   useEffect(() => {
@@ -116,6 +119,8 @@ export const App = () => {
     // 2. STAFF PORTAL
     if (role === 'staff') {
       switch (activeTab) {
+        case 'pre-register':
+          return <PreRegisterStudents />;
         case 'mark-attendance':
           return <MarkAttendance />;
         case 'manage-marks':
@@ -124,7 +129,7 @@ export const App = () => {
           return <UploadMaterials defaultCategory="notes" />;
         case 'upload-qb':
           return <UploadMaterials defaultCategory="qb" />;
-        case 'send-announcement':
+        case 'announcements':
           return <SendAnnouncement />;
         case 'dashboard':
         default:
@@ -135,12 +140,16 @@ export const App = () => {
     // 3. ADMIN PORTAL
     if (role === 'admin') {
       switch (activeTab) {
+        case 'manage-departments':
+          return <ManageDepartments />;
         case 'manage-classes':
           return <ManageClasses />;
         case 'manage-staff':
           return <ManageStaff />;
         case 'manage-students':
           return <ManageStudents />;
+        case 'announcements':
+          return <SendAnnouncement />;
         case 'dashboard':
         default:
           return <AdminDashboard onNavigate={(tab) => setActiveTab(tab)} />;
@@ -152,9 +161,9 @@ export const App = () => {
 
   return (
     <div className="app-container">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div className="main-content">
-        <Navbar />
+        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
         {renderContent()}
       </div>
     </div>

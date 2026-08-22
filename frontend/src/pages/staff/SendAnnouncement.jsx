@@ -101,7 +101,7 @@ export const SendAnnouncement = () => {
         <div className="page-title-group">
           <h1>
             <Megaphone size={28} color="var(--accent-purple)" />
-            Faculty Notice &amp; Announcement Broadcaster
+            Official Notice &amp; Announcement Broadcaster
           </h1>
           <p className="page-subtitle">
             Send instant broadcast circulars to all students, specific class sections, or course batches

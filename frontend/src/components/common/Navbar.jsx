@@ -11,12 +11,13 @@ import {
   Settings,
   Shield,
   User,
-  BookOpen
+  BookOpen,
+  Menu
 } from 'lucide-react';
 import { Modal } from './Modal';
 import { setApiBaseURL } from '../../api/client';
 
-export const Navbar = () => {
+export const Navbar = ({ toggleSidebar }) => {
   const { user, logout, backendOnline, checkingBackend, testBackend, theme, toggleTheme } = useAuth();
   const toast = useToast();
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -40,6 +41,13 @@ export const Navbar = () => {
     <>
       <header className="navbar glass-panel">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button 
+            className="btn-ghost hamburger-btn" 
+            onClick={toggleSidebar}
+            style={{ padding: '0.5rem', display: 'flex' }}
+          >
+            <Menu size={24} />
+          </button>
           <div
             style={{
               display: 'flex',
@@ -74,47 +82,7 @@ export const Navbar = () => {
 
         {/* Right side controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Backend Status Pill */}
-          <button
-            onClick={() => setShowConfigModal(true)}
-            className="btn-ghost"
-            title="Click to configure Backend API URL"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.35rem 0.75rem',
-              borderRadius: 'var(--radius-full)',
-              background: backendOnline
-                ? 'rgba(16, 185, 129, 0.12)'
-                : 'rgba(244, 63, 94, 0.12)',
-              border: `1px solid ${
-                backendOnline ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'
-              }`,
-              fontSize: '0.775rem',
-              fontWeight: 600,
-            }}
-          >
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: backendOnline ? '#10b981' : '#f43f5e',
-                boxShadow: backendOnline
-                  ? '0 0 8px #10b981'
-                  : '0 0 8px #f43f5e',
-              }}
-            />
-            <span style={{ color: backendOnline ? '#34d399' : '#fb7185' }}>
-              {checkingBackend
-                ? 'Checking API...'
-                : backendOnline
-                ? 'Backend Online'
-                : 'Backend Offline (8000)'}
-            </span>
-            <Settings size={13} style={{ opacity: 0.7 }} />
-          </button>
+
 
           {/* Theme Switcher */}
           <button
@@ -233,7 +201,7 @@ export const Navbar = () => {
               💡 How to run your backend:
             </div>
             <code style={{ display: 'block', background: 'rgba(0,0,0,0.3)', padding: '6px 10px', borderRadius: '4px', margin: '4px 0' }}>
-              cd Student_Manegment &amp;&amp; uvicorn app.main:app --reload
+              cd Student_Manegment &amp;&amp; python -m uvicorn app.main:app --reload
             </code>
           </div>
 

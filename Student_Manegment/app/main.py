@@ -31,9 +31,16 @@ def on_startup():
 def root():
     return {"message": "BIEW Connect API is running"}
 
+@app.get("/test404")
+def test404():
+    return {"message": "Test successful!"}
+
 
 from app.routers import auth  # noqa: E402
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+
+from app.routers import profile  # noqa: E402
+app.include_router(profile.router, prefix="/profile", tags=["Profile"])
 
 from app.routers import academic  # noqa: E402
 app.include_router(academic.router, tags=["Classes & Subjects"])
@@ -61,3 +68,4 @@ app.include_router(staff_router.router, prefix="/staff", tags=["Staff Dashboard"
 
 from app.routers import admin  # noqa: E402
 app.include_router(admin.router, prefix="/admin", tags=["Admin (Principal)"])
+# Trigger reload

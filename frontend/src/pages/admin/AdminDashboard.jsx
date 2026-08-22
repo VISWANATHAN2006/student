@@ -42,11 +42,7 @@ export const AdminDashboard = ({ onNavigate }) => {
         if (classesRes.status === 'fulfilled' && Array.isArray(classesRes.value)) {
           setClassList(classesRes.value);
         } else {
-          setClassList([
-            { id: 1, name: 'III BCA - A', department: 'Computer Applications', student_count: 48, advisor_name: 'Dr. K. Anbarasan' },
-            { id: 2, name: 'III BCA - B', department: 'Computer Applications', student_count: 42, advisor_name: 'Prof. S. Rangarajan' },
-            { id: 3, name: 'II B.Sc CS', department: 'Computer Science', student_count: 38, advisor_name: 'Dr. V. Meenakshi' },
-          ]);
+          setClassList([]);
         }
       } finally {
         setLoading(false);
