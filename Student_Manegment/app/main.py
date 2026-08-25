@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
-from app.database import Base, engine
+from app.database import Base, engine, SessionLocal
+from app.models.academic import ClassGroup, Subject
 
 from app.models import academic, student, staff, academic_records, files, notification, admin  # noqa: F401
 
@@ -11,7 +12,13 @@ app = FastAPI(title="Student Management API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "*"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,6 +32,33 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+    
+    # Auto-seed standard classes if empty
+    db = SessionLocal()
+    try:
+        if db.query(ClassGroup).count() == 0:
+            default_classes = [
+                ClassGroup(id=1, name="III BCA - A", department="Computer Applications"),
+                ClassGroup(id=2, name="III BCA - B", department="Computer Applications"),
+                ClassGroup(id=3, name="II B.Sc CS", department="Computer Science"),
+                ClassGroup(id=4, name="I MCA", department="Computer Applications"),
+            ]
+            db.add_all(default_classes)
+            db.commit()
+            
+            default_subjects = [
+                Subject(name="Java Programming", class_id=1),
+                Subject(name="Database Management Systems", class_id=1),
+                Subject(name="Web Technologies", class_id=1),
+                Subject(name="Computer Networks", class_id=2),
+                Subject(name="Python Programming", class_id=3),
+            ]
+            db.add_all(default_subjects)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+    finally:
+        db.close()
 
 
 @app.get("/")

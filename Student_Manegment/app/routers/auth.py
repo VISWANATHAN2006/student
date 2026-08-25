@@ -7,6 +7,7 @@ from app.core.security import hash_password, verify_password, create_access_toke
 from app.models.student import Student
 from app.models.staff import Staff, StaffRole
 from app.models.admin import Admin
+from app.models.academic import ClassGroup
 from app.schemas.auth import (
     StudentRegisterRequest,
     StaffRegisterRequest,
@@ -84,6 +85,13 @@ def register_student(payload: StudentRegisterRequest, db: Session = Depends(get_
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Your Register Number is not authorized for registration. Please contact your staff/admin to get added.",
+        )
+
+    class_obj = db.query(ClassGroup).filter(ClassGroup.id == payload.class_id).first()
+    if not class_obj:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Selected class (ID {payload.class_id}) does not exist.",
         )
 
     existing_reg = db.query(Student).filter(Student.reg_no == payload.reg_no.strip()).first()

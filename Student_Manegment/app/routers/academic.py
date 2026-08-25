@@ -54,7 +54,6 @@ def create_class(payload: ClassCreateRequest, db: Session = Depends(get_db), cur
 
 @router.get("/classes", response_model=List[ClassResponse])
 def list_classes(db: Session = Depends(get_db)):
-    print('list_classes CALLED')
     return db.query(ClassGroup).all()
 
 
