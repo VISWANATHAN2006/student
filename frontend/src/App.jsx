@@ -161,6 +161,12 @@ export const App = () => {
 
   return (
     <div className="app-container">
+      {isSidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div className="main-content">
         <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />

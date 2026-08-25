@@ -36,27 +36,18 @@ export const StudentAttendance = () => {
           setSummary(sumRes.value);
         } else {
           setSummary({
-            total_marked: 42,
-            present: 37,
-            absent: 3,
-            leave: 2,
-            percentage: 88.1,
+            total_marked: 0,
+            present: 0,
+            absent: 0,
+            leave: 0,
+            percentage: 0,
           });
         }
 
-        if (recRes.status === 'fulfilled' && recRes.value && recRes.value.length > 0) {
+        if (recRes.status === 'fulfilled' && recRes.value) {
           setRecords(recRes.value);
         } else {
-          // Demo rows for visual testing
-          setRecords([
-            { id: 1, date: '2026-08-16', status: 'present', subject_id: 101 },
-            { id: 2, date: '2026-08-15', status: 'present', subject_id: null },
-            { id: 3, date: '2026-08-14', status: 'absent', subject_id: 102 },
-            { id: 4, date: '2026-08-13', status: 'present', subject_id: 101 },
-            { id: 5, date: '2026-08-12', status: 'leave', subject_id: null },
-            { id: 6, date: '2026-08-11', status: 'present', subject_id: 103 },
-            { id: 7, date: '2026-08-10', status: 'present', subject_id: 101 },
-          ]);
+          setRecords([]);
         }
       } finally {
         setLoading(false);
