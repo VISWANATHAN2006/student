@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from app.database import get_db
