@@ -46,7 +46,7 @@ export const App = () => {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)' }}>
-        <Loader text="Initializing BIEW Connect..." size={42} />
+        <Loader text="Initializing Student Management..." size={42} />
       </div>
     );
   }

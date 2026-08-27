@@ -74,9 +74,9 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
             <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
-            <div style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-              BIEW CONNECT
-            </div>
+            <span style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-heading)', letterSpacing: '0.5px' }}>
+              STUDENT MANAGEMENT
+            </span>
             <div
               style={{
                 fontSize: '0.7rem',

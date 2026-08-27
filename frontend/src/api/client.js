@@ -2,14 +2,15 @@ import axios from 'axios';
 
 // Get custom API URL from localStorage or fallback to environment-appropriate default
 const getBaseURL = () => {
-  const saved = localStorage.getItem('biew_api_url');
-  if (saved) return saved;
-
   // Android emulator can't reach the host machine via 127.0.0.1 — it must use
   // the special alias 10.0.2.2. Web/dev builds keep using 127.0.0.1.
   if (import.meta.env.MODE === 'mobile') {
     return 'http://10.0.2.2:8000';
   }
+
+  const saved = localStorage.getItem('biew_api_url');
+  if (saved) return saved;
+
   return 'http://127.0.0.1:8000';
 };
 

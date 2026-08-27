@@ -82,7 +82,7 @@ export const AdminDashboard = ({ onNavigate }) => {
             Executive College Management System
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', fontSize: '0.95rem' }}>
-            BIEW Connect Central Administration — Monitor academic structures, faculty assignments, and students.
+            Student Management Central Administration — Monitor academic structures, faculty assignments, and students.
           </p>
         </div>
 

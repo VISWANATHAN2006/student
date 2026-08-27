@@ -1,5 +1,9 @@
 {
   "appId": "com.biewconnect.app",
-  "appName": "BIEW Connect",
-  "webDir": "dist"
+  "appName": "Student Management",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
 }

@@ -79,12 +79,7 @@ export const ManageClasses = () => {
       setShowClassModal(false);
       fetchData();
     } catch (err) {
-      // Demo simulated success
-      const newClass = { id: Date.now(), name: className, department };
-      setClasses((prev) => [...prev, newClass]);
-      toast.success(`Class group "${className}" created successfully!`);
-      setClassName('');
-      setShowClassModal(false);
+      toast.error(err?.response?.data?.detail || 'Failed to create class');
     }
   };
 

@@ -191,6 +191,7 @@ export const LoginPage = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
+                  autoComplete="username"
                   required
                 />
                 <Mail
@@ -211,6 +212,7 @@ export const LoginPage = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
+                  autoComplete="current-password"
                   required
                 />
                 <Lock

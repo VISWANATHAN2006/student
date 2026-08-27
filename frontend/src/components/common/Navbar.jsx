@@ -74,8 +74,8 @@ export const Navbar = ({ toggleSidebar }) => {
               <GraduationCap size={22} color="#ffffff" />
             </div>
             <div>
-              <span style={{ color: 'var(--text-primary)' }}>BIEW</span>{' '}
-              <span style={{ color: 'var(--primary-400)' }}>Connect</span>
+              <span style={{ color: 'var(--text-primary)' }}>STUDENT</span>{' '}
+              <span style={{ color: 'var(--primary-400)' }}>MANAGEMENT</span>
             </div>
           </div>
         </div>
