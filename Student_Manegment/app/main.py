@@ -32,34 +32,6 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
-    
-    # Auto-seed standard classes if empty
-    db = SessionLocal()
-    try:
-        if db.query(ClassGroup).count() == 0:
-            default_classes = [
-                ClassGroup(id=1, name="III BCA - A", department="Computer Applications"),
-                ClassGroup(id=2, name="III BCA - B", department="Computer Applications"),
-                ClassGroup(id=3, name="II B.Sc CS", department="Computer Science"),
-                ClassGroup(id=4, name="I MCA", department="Computer Applications"),
-            ]
-            db.add_all(default_classes)
-            db.commit()
-            
-            default_subjects = [
-                Subject(name="Java Programming", class_id=1),
-                Subject(name="Database Management Systems", class_id=1),
-                Subject(name="Web Technologies", class_id=1),
-                Subject(name="Computer Networks", class_id=2),
-                Subject(name="Python Programming", class_id=3),
-            ]
-            db.add_all(default_subjects)
-            db.commit()
-    except Exception as e:
-        db.rollback()
-    finally:
-        db.close()
-
 
 @app.get("/")
 def root():
