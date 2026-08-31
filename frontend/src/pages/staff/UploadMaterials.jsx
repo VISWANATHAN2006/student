@@ -112,10 +112,10 @@ export const UploadMaterials = ({ defaultCategory = 'notes' }) => {
         <div className="page-title-group">
           <h1>
             <UploadCloud size={28} color="var(--primary-400)" />
-            Faculty Digital Courseware Upload
+            Faculty Digital Notes Courseware upload
           </h1>
           <p className="page-subtitle">
-            Distribute syllabus notes, lecture handouts, and previous examination question papers to students
+            lecture handouts to students
           </p>
         </div>
 

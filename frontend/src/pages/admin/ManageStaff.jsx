@@ -118,11 +118,9 @@ export const ManageStaff = () => {
         <div className="page-title-group">
           <h1>
             <Users size={28} color="var(--accent-cyan)" />
-            Faculty Roster &amp; Academic Duties
+            Faculty's overview &amp; Academic Duties
           </h1>
-          <p className="page-subtitle">
-            Manage teaching staff, designate Class Advisors, and map Subject Teachers to classes
-          </p>
+
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>

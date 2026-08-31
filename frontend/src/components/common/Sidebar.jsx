@@ -50,7 +50,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
     { id: 'manage-departments', label: 'Departments', icon: Layers },
     { id: 'manage-classes', label: 'Classes & Subjects', icon: BookOpen },
     { id: 'manage-staff', label: 'Staff & Assignments', icon: Users },
-    { id: 'manage-students', label: 'Students Roster', icon: GraduationCap },
+    { id: 'manage-students', label: 'Students Portal', icon: GraduationCap },
     { id: 'announcements', label: 'Announcements & Circulars', icon: Megaphone },
   ];
 

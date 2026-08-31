@@ -101,7 +101,7 @@ export const SendAnnouncement = () => {
         <div className="page-title-group">
           <h1>
             <Megaphone size={28} color="var(--accent-purple)" />
-            Official Notice &amp; Announcement Broadcaster
+            Student Announcements
           </h1>
           <p className="page-subtitle">
             Send instant broadcast circulars to all students, specific class sections, or course batches
@@ -119,6 +119,9 @@ export const SendAnnouncement = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">Target Audience</label>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                Choose who should receive the announcement (Send To / Recipients)
+              </div>
               <select
                 className="form-select"
                 value={targetType}
@@ -182,11 +185,11 @@ export const SendAnnouncement = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Announcement Content / Body</label>
+              <label className="form-label">Message / Announcement Details</label>
               <textarea
                 className="form-textarea"
                 rows={5}
-                placeholder="Type the full memo details or instructions here..."
+                placeholder="Write your announcement here..."
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 required

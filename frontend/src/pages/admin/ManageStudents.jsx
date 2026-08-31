@@ -64,7 +64,7 @@ export const ManageStudents = () => {
         <div className="page-title-group">
           <h1>
             <GraduationCap size={28} color="var(--primary-400)" />
-            Student Master Roster &amp; Directory
+            Student Details &amp; Directory
           </h1>
           <p className="page-subtitle">
             Searchable institutional registry of enrolled students and class batches
