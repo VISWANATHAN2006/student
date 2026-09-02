@@ -69,7 +69,7 @@ export const StudentMarks = () => {
         <div className="page-title-group">
           <h1>
             <Award size={28} color="var(--accent-amber)" />
-            Internal Marks &amp; Assessment Report
+            Internal Assessment Report
           </h1>
           <p className="page-subtitle">
             Continuous Internal Assessment (CIA), Model Exams, and Term Scores

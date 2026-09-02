@@ -169,7 +169,7 @@ export const StudentDashboard = ({ onNavigate }) => {
         <div className="card glass-panel">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
             <h3 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUp size={20} color="var(--primary-400)" /> Attendance Health Meter
+              <TrendingUp size={20} color="var(--primary-400)" /> Attendance Overview
             </h3>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Target: 85%+</span>
           </div>
