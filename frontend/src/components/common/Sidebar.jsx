@@ -60,26 +60,27 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingRight: '1rem' }}>
+      <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '0 1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div
             style={{
-              width: '40px',
-              height: '40px',
+              width: '36px',
+              height: '36px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
             <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
-            <span style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-heading)', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: '1.1rem', fontWeight: 800, fontFamily: 'var(--font-heading)', letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>
               STUDENT MANAGEMENT
             </span>
             <div
               style={{
-                fontSize: '0.7rem',
+                fontSize: '0.68rem',
                 color: 'var(--text-muted)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
@@ -90,14 +91,6 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
             </div>
           </div>
         </div>
-        
-        <button 
-          className="mobile-close-btn"
-          onClick={() => setIsOpen(false)}
-          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'none' }}
-        >
-          <X size={20} />
-        </button>
       </div>
 
       <nav className="sidebar-nav">

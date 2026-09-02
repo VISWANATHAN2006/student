@@ -36,12 +36,36 @@ export const App = () => {
   const [publicView, setPublicView] = useState('landing'); // 'landing' | 'login' | 'register'
   const [initialRole, setInitialRole] = useState('student');
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [tabHistory, setTabHistory] = useState(['dashboard']);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Reset tab to dashboard on user/role change
   useEffect(() => {
     setActiveTab('dashboard');
+    setTabHistory(['dashboard']);
   }, [user?.user_type]);
+
+  const handleNavigateTab = (newTab) => {
+    if (newTab !== activeTab) {
+      setTabHistory((prev) => [...prev, newTab]);
+      setActiveTab(newTab);
+    }
+  };
+
+  const handleBack = () => {
+    if (tabHistory.length > 1) {
+      const nextHistory = [...tabHistory];
+      nextHistory.pop();
+      const prevTab = nextHistory[nextHistory.length - 1];
+      setTabHistory(nextHistory);
+      setActiveTab(prevTab);
+    } else if (activeTab !== 'dashboard') {
+      setActiveTab('dashboard');
+      setTabHistory(['dashboard']);
+    } else {
+      window.history.back();
+    }
+  };
 
   if (loading) {
     return (
@@ -101,18 +125,18 @@ export const App = () => {
     if (role === 'student') {
       switch (activeTab) {
         case 'attendance':
-          return <StudentAttendance />;
+          return <StudentAttendance onBack={handleBack} />;
         case 'marks':
-          return <StudentMarks />;
+          return <StudentMarks onBack={handleBack} />;
         case 'notes':
-          return <StudentMaterials initialTab="notes" />;
+          return <StudentMaterials initialTab="notes" onBack={handleBack} />;
         case 'question-bank':
-          return <StudentMaterials initialTab="qb" />;
+          return <StudentMaterials initialTab="qb" onBack={handleBack} />;
         case 'announcements':
-          return <StudentAnnouncements />;
+          return <StudentAnnouncements onBack={handleBack} />;
         case 'dashboard':
         default:
-          return <StudentDashboard onNavigate={(tab) => setActiveTab(tab)} />;
+          return <StudentDashboard onNavigate={handleNavigateTab} />;
       }
     }
 
@@ -120,20 +144,20 @@ export const App = () => {
     if (role === 'staff') {
       switch (activeTab) {
         case 'pre-register':
-          return <PreRegisterStudents />;
+          return <PreRegisterStudents onBack={handleBack} />;
         case 'mark-attendance':
-          return <MarkAttendance />;
+          return <MarkAttendance onBack={handleBack} />;
         case 'manage-marks':
-          return <ManageMarks />;
+          return <ManageMarks onBack={handleBack} />;
         case 'upload-notes':
-          return <UploadMaterials defaultCategory="notes" />;
+          return <UploadMaterials defaultCategory="notes" onBack={handleBack} />;
         case 'upload-qb':
-          return <UploadMaterials defaultCategory="qb" />;
+          return <UploadMaterials defaultCategory="qb" onBack={handleBack} />;
         case 'announcements':
-          return <SendAnnouncement />;
+          return <SendAnnouncement onBack={handleBack} />;
         case 'dashboard':
         default:
-          return <StaffDashboard onNavigate={(tab) => setActiveTab(tab)} />;
+          return <StaffDashboard onNavigate={handleNavigateTab} />;
       }
     }
 
@@ -141,18 +165,18 @@ export const App = () => {
     if (role === 'admin') {
       switch (activeTab) {
         case 'manage-departments':
-          return <ManageDepartments />;
+          return <ManageDepartments onBack={handleBack} />;
         case 'manage-classes':
-          return <ManageClasses />;
+          return <ManageClasses onBack={handleBack} />;
         case 'manage-staff':
-          return <ManageStaff />;
+          return <ManageStaff onBack={handleBack} />;
         case 'manage-students':
-          return <ManageStudents />;
+          return <ManageStudents onBack={handleBack} />;
         case 'announcements':
-          return <SendAnnouncement />;
+          return <SendAnnouncement onBack={handleBack} />;
         case 'dashboard':
         default:
-          return <AdminDashboard onNavigate={(tab) => setActiveTab(tab)} />;
+          return <AdminDashboard onNavigate={handleNavigateTab} />;
       }
     }
 
@@ -167,10 +191,12 @@ export const App = () => {
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <Sidebar activeTab={activeTab} setActiveTab={handleNavigateTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div className="main-content">
-        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        {renderContent()}
+        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onBack={handleBack} />
+        <div className="page-content-scroll">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

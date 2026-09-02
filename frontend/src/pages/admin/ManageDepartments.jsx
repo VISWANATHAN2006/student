@@ -100,7 +100,7 @@ export const ManageDepartments = () => {
               className="form-input"
               value={newDept}
               onChange={(e) => setNewDept(e.target.value)}
-              placeholder="e.g. Computer Science, Commerce"
+              placeholder="Enter department name"
               required
             />
           </div>

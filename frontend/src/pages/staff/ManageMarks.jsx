@@ -74,26 +74,18 @@ export const ManageMarks = () => {
           setSelectedSubject(String(subjectList.value[0].id));
           setSingleForm((prev) => ({ ...prev, subject_id: String(subjectList.value[0].id) }));
         } else {
-          setSubjects([
-            { id: 1, name: 'Java Programming', class_id: 1 },
-            { id: 2, name: 'Data Structures', class_id: 1 },
-            { id: 3, name: 'Database Systems', class_id: 1 },
-          ]);
+          setSubjects([]);
         }
 
         if (studentList.status === 'fulfilled' && studentList.value?.length > 0) {
           setStudents(studentList.value);
           setSingleForm((prev) => ({ ...prev, student_id: String(studentList.value[0].id) }));
         } else {
-          setStudents([
-            { id: 1, full_name: 'Viswanathan R', reg_no: '953621104001' },
-            { id: 2, full_name: 'Aravind Kumar M', reg_no: '953621104002' },
-            { id: 3, full_name: 'Divya Bharathi S', reg_no: '953621104003' },
-            { id: 4, full_name: 'Gowtham Raj P', reg_no: '953621104004' },
-          ]);
+          setStudents([]);
         }
       } catch (err) {
-        // Fallback initialized
+        setSubjects([]);
+        setStudents([]);
       }
     };
 
@@ -428,7 +420,7 @@ export const ManageMarks = () => {
                   type="number"
                   step="0.5"
                   className="form-input"
-                  placeholder="e.g. 18.5"
+                  placeholder="Enter marks"
                   value={singleForm.marks_obtained}
                   onChange={(e) => setSingleForm({ ...singleForm, marks_obtained: e.target.value })}
                   required

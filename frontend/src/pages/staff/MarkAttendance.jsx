@@ -46,24 +46,17 @@ export const MarkAttendance = () => {
           setClasses(classList.value);
           setSelectedClass(String(classList.value[0].id));
         } else {
-          setClasses([
-            { id: 1, name: 'III BCA - A', department: 'Computer Applications' },
-            { id: 2, name: 'III BCA - B', department: 'Computer Applications' },
-            { id: 3, name: 'II B.Sc CS', department: 'Computer Science' },
-          ]);
+          setClasses([]);
         }
 
         if (subjectList.status === 'fulfilled' && subjectList.value?.length > 0) {
           setSubjects(subjectList.value);
         } else {
-          setSubjects([
-            { id: 1, name: 'Java Programming', class_id: 1 },
-            { id: 2, name: 'Data Structures', class_id: 1 },
-            { id: 3, name: 'Database Management Systems', class_id: 1 },
-          ]);
+          setSubjects([]);
         }
       } catch (e) {
-        // Handled via defaults
+        setClasses([]);
+        setSubjects([]);
       }
     };
     fetchAcademicData();

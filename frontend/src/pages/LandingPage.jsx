@@ -1,12 +1,12 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import logo from '../assets/logo.png';
+import { PublicNavbar } from '../components/common/PublicNavbar';
 
-export const LandingPage = ({ onNavigateLogin }) => {
+export const LandingPage = ({ onNavigateLogin, onNavigateRegister }) => {
   const { loginDemo } = useAuth();
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-main)', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', background: 'var(--bg-main)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
       {/* Background Decorative Gradients */}
       <div
         style={{
@@ -19,80 +19,50 @@ export const LandingPage = ({ onNavigateLogin }) => {
           background: 'radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(124, 58, 237, 0.05) 60%, transparent 80%)',
           pointerEvents: 'none',
           filter: 'blur(40px)',
+          zIndex: 1,
         }}
       />
 
-      {/* Landing Nav */}
-      <header
-        style={{
-          maxWidth: '1300px',
-          margin: '0 auto',
-          padding: '1.5rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <img 
-            src={logo} 
-            alt="Bharathiyar Institute Logo" 
-            style={{ 
-              height: '50px', 
-              width: '50px', 
-              borderRadius: '50%',
-              objectFit: 'cover'
-            }} 
-          />
-          <div>
-            <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
-              STUDENT <span style={{ color: 'var(--primary-400)' }}>MANAGEMENT</span>
-            </span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button
-            onClick={() => onNavigateLogin('student')}
-            className="btn btn-primary btn-sm"
-          >
-            Sign In
-          </button>
-        </div>
-      </header>
+      {/* Top Navbar with 3-line Menu */}
+      <PublicNavbar
+        currentView="landing"
+        onNavigateHome={() => {}}
+        onNavigateLogin={onNavigateLogin}
+        onNavigateRegister={onNavigateRegister}
+      />
 
       {/* Hero Section */}
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '6rem 2rem 5rem', textAlign: 'center', position: 'relative', zIndex: 10 }}>
-        
-        <h1
-          style={{
-            fontSize: 'clamp(3rem, 6vw, 4.5rem)',
-            fontWeight: 900,
-            lineHeight: 1.15,
-            letterSpacing: '-0.03em',
-            marginBottom: '1.25rem',
-            maxWidth: '900px',
-            margin: '0 auto 1.25rem',
-          }}
-        >
-          STUDENT <span style={{ background: 'var(--grad-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>MANAGEMENT</span>
-        </h1>
+      <div className="page-content-scroll" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 2rem 5rem', textAlign: 'center', position: 'relative', zIndex: 10 }}>
+          
+          <h1
+            style={{
+              fontSize: 'clamp(3rem, 6vw, 4.5rem)',
+              fontWeight: 900,
+              lineHeight: 1.15,
+              letterSpacing: '-0.03em',
+              marginBottom: '1.25rem',
+              maxWidth: '900px',
+              margin: '0 auto 1.25rem',
+            }}
+          >
+            STUDENT <span style={{ background: 'var(--grad-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>MANAGEMENT</span>
+          </h1>
 
-        <p
-          style={{
-            fontSize: '1.5rem',
-            color: 'var(--text-secondary)',
-            maxWidth: '680px',
-            margin: '0 auto 2.5rem',
-            lineHeight: 1.6,
-          }}
-        >
-          Welcome Staff and Students!
-        </p>
+          <p
+            style={{
+              fontSize: '1.5rem',
+              color: 'var(--text-secondary)',
+              maxWidth: '680px',
+              margin: '0 auto 2.5rem',
+              lineHeight: 1.6,
+            }}
+          >
+            Welcome!!!
+          </p>
 
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

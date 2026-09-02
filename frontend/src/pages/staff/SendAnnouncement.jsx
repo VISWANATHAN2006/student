@@ -177,7 +177,7 @@ export const SendAnnouncement = () => {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Model Exam Timetable Released"
+                placeholder="Enter circular / announcement title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required

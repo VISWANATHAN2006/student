@@ -50,11 +50,7 @@ export const ManageStaff = () => {
           setSubjectForm((prev) => ({ ...prev, staff_id: firstStaffId }));
         }
       } else {
-        setStaffList([
-          { id: 101, full_name: 'Dr. K. Anbarasan', email: 'anbarasan@biew.edu.in', role_type: 'both', department: 'Computer Applications' },
-          { id: 102, full_name: 'Prof. S. Rangarajan', email: 'rangarajan@biew.edu.in', role_type: 'advisor', department: 'Computer Applications' },
-          { id: 103, full_name: 'Dr. V. Meenakshi', email: 'meenakshi@biew.edu.in', role_type: 'subject', department: 'Computer Science' },
-        ]);
+        setStaffList([]);
       }
 
       if (classRes.status === 'fulfilled' && Array.isArray(classRes.value)) {

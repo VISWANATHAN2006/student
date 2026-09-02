@@ -35,27 +35,22 @@ export const StudentDashboard = ({ onNavigate }) => {
         if (dashData.status === 'fulfilled') {
           setStats(dashData.value);
         } else {
-          // Fallback demo metrics if backend database has no active rows yet
           setStats({
-            full_name: user?.full_name || 'Viswanathan R',
-            reg_no: user?.reg_no || '953621104001',
-            class_name: 'III BCA - A',
-            attendance_percentage: 88.5,
-            total_marks_obtained: 382.0,
-            total_max_marks: 450.0,
-            subject_count: 6,
-            unread_notification_count: 3,
+            full_name: user?.full_name || '',
+            reg_no: user?.reg_no || '',
+            class_name: '',
+            attendance_percentage: 0,
+            total_marks_obtained: 0,
+            total_max_marks: 0,
+            subject_count: 0,
+            unread_notification_count: 0,
           });
         }
 
         if (noticesData.status === 'fulfilled' && Array.isArray(noticesData.value)) {
           setRecentNotices(noticesData.value.slice(0, 4));
         } else {
-          setRecentNotices([
-            { id: 1, title: 'CIA-2 Exam Schedule Released', body: 'The second internal assessment commences next Monday.', created_at: '2026-08-16', target_type: 'all' },
-            { id: 2, title: 'Web Development Project Submission', body: 'Upload your React project zip file before Friday 5 PM.', created_at: '2026-08-15', target_type: 'class' },
-            { id: 3, title: 'Independence Day Holiday Notice', body: 'College will remain closed on the occasion of Independence day.', created_at: '2026-08-14', target_type: 'all' },
-          ]);
+          setRecentNotices([]);
         }
       } finally {
         setLoading(false);

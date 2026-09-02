@@ -12,12 +12,13 @@ import {
   Shield,
   User,
   BookOpen,
-  Menu
+  Menu,
+  ArrowLeft
 } from 'lucide-react';
 import { Modal } from './Modal';
 import { setApiBaseURL } from '../../api/client';
 
-export const Navbar = ({ toggleSidebar }) => {
+export const Navbar = ({ toggleSidebar, onBack }) => {
   const { user, logout, backendOnline, checkingBackend, testBackend, theme, toggleTheme } = useAuth();
   const toast = useToast();
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -40,13 +41,41 @@ export const Navbar = ({ toggleSidebar }) => {
   return (
     <>
       <header className="navbar glass-panel">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <button 
             className="btn-ghost hamburger-btn" 
             onClick={toggleSidebar}
-            style={{ padding: '0.5rem', display: 'flex' }}
+            aria-label="Toggle navigation menu"
+            title="Toggle navigation menu"
+            style={{
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              background: 'rgba(255, 255, 255, 0.03)',
+            }}
           >
-            <Menu size={24} />
+            <Menu size={22} />
+          </button>
+
+          <button 
+            className="btn-ghost" 
+            onClick={onBack || (() => window.history.back())}
+            aria-label="Go back"
+            title="Go back"
+            style={{
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              background: 'rgba(255, 255, 255, 0.03)',
+            }}
+          >
+            <ArrowLeft size={20} />
           </button>
           <div
             style={{
@@ -57,6 +86,7 @@ export const Navbar = ({ toggleSidebar }) => {
               fontSize: '1.25rem',
               fontFamily: 'var(--font-heading)',
               letterSpacing: '-0.02em',
+              flexShrink: 0,
             }}
           >
             <div
@@ -69,11 +99,12 @@ export const Navbar = ({ toggleSidebar }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+                flexShrink: 0,
               }}
             >
               <GraduationCap size={22} color="#ffffff" />
             </div>
-            <div>
+            <div className="navbar-brand-title" style={{ whiteSpace: 'nowrap' }}>
               <span style={{ color: 'var(--text-primary)' }}>STUDENT</span>{' '}
               <span style={{ color: 'var(--primary-400)' }}>MANAGEMENT</span>
             </div>
@@ -81,7 +112,7 @@ export const Navbar = ({ toggleSidebar }) => {
         </div>
 
         {/* Right side controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
 
 
           {/* Theme Switcher */}

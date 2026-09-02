@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
 import { authApi } from '../api/auth';
 import { academicApi } from '../api/academic';
+import { PublicNavbar } from '../components/common/PublicNavbar';
 import {
   GraduationCap,
   Users,
@@ -135,22 +136,37 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
   return (
     <div
       style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2.5rem 1.5rem',
+        height: '100vh',
         background: 'var(--bg-main)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '600px' }}>
-        <button
-          onClick={onNavigateBack}
-          className="btn-ghost btn-sm"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}
-        >
-          <ChevronLeft size={16} /> Back to Home
-        </button>
+      <PublicNavbar
+        currentView="register"
+        onNavigateHome={onNavigateBack}
+        onNavigateLogin={onNavigateLogin}
+        onNavigateRegister={(r) => setRole(r)}
+      />
+
+      <div
+        className="page-content-scroll"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2.5rem 1.5rem',
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: '600px' }}>
+          <button
+            onClick={onNavigateBack}
+            className="btn-ghost btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}
+          >
+            <ChevronLeft size={16} /> Back to Home
+          </button>
 
         <div className="card card-glow glass-panel" style={{ padding: '2.25rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
@@ -230,16 +246,17 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
           {/* STUDENT FORM */}
           {role === 'student' && (
-            <form onSubmit={handleStudentSubmit}>
+            <form onSubmit={handleStudentSubmit} autoComplete="off">
               <div className="form-grid-2">
                 <div className="form-group">
                   <label className="form-label">Full Name *</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. Viswanathan R"
+                    placeholder="Enter full name"
                     value={studentForm.full_name}
                     onChange={(e) => setStudentForm({ ...studentForm, full_name: e.target.value })}
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -268,9 +285,10 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. 953621104001"
+                    placeholder="Enter register number"
                     value={studentForm.reg_no}
                     onChange={(e) => setStudentForm({ ...studentForm, reg_no: e.target.value })}
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -280,9 +298,10 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. 21BCA01"
+                    placeholder="Enter roll number"
                     value={studentForm.roll_no}
                     onChange={(e) => setStudentForm({ ...studentForm, roll_no: e.target.value })}
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -311,6 +330,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="BCA"
                     value={studentForm.branch}
                     onChange={(e) => setStudentForm({ ...studentForm, branch: e.target.value })}
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -324,6 +344,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="Optional state UMIS ID"
                     value={studentForm.umis_id}
                     onChange={(e) => setStudentForm({ ...studentForm, umis_id: e.target.value })}
+                    autoComplete="off"
                   />
                 </div>
 
@@ -347,6 +368,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="student@biew.edu.in"
                     value={studentForm.email}
                     onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -359,6 +381,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="••••••••"
                     value={studentForm.password}
                     onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })}
+                    autoComplete="new-password"
                     required
                   />
                 </div>
@@ -377,15 +400,16 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
           {/* STAFF FORM */}
           {role === 'staff' && (
-            <form onSubmit={handleStaffSubmit}>
+            <form onSubmit={handleStaffSubmit} autoComplete="off">
               <div className="form-group">
                 <label className="form-label">Faculty Full Name *</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Dr. K. Anbarasan"
+                  placeholder="Enter full name"
                   value={staffForm.full_name}
                   onChange={(e) => setStaffForm({ ...staffForm, full_name: e.target.value })}
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -429,6 +453,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="faculty@biew.edu.in"
                     value={staffForm.email}
                     onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -441,6 +466,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="••••••••"
                     value={staffForm.password}
                     onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+                    autoComplete="new-password"
                     required
                   />
                 </div>
@@ -459,15 +485,16 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
           {/* ADMIN FORM */}
           {role === 'admin' && (
-            <form onSubmit={handleAdminSubmit}>
+            <form onSubmit={handleAdminSubmit} autoComplete="off">
               <div className="form-group">
                 <label className="form-label">Admin / Principal Name *</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Dr. M. Senthil Kumar"
+                  placeholder="Enter full name"
                   value={adminForm.full_name}
                   onChange={(e) => setAdminForm({ ...adminForm, full_name: e.target.value })}
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -477,9 +504,10 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Principal / Vice-Principal / Dean"
+                  placeholder="Enter designation"
                   value={adminForm.designation}
                   onChange={(e) => setAdminForm({ ...adminForm, designation: e.target.value })}
+                  autoComplete="off"
                 />
               </div>
 
@@ -492,6 +520,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="principal@biew.edu.in"
                     value={adminForm.email}
                     onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -504,6 +533,7 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
                     placeholder="••••••••"
                     value={adminForm.password}
                     onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                    autoComplete="new-password"
                     required
                   />
                 </div>
@@ -544,5 +574,6 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
         </div>
       </div>
     </div>
+  </div>
   );
 };
