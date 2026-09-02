@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { PublicNavbar } from '../components/common/PublicNavbar';
 import logo from '../assets/logo.png';
 import {
   GraduationCap,
@@ -26,6 +27,12 @@ export const LoginPage = ({
 
   const { login, loginDemo, backendOnline } = useAuth();
   const toast = useToast();
+
+  const handleRoleChange = (newRole) => {
+    setRole(newRole);
+    setEmail('');
+    setPassword('');
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -53,29 +60,44 @@ export const LoginPage = ({
   return (
     <div
       style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem 1.5rem',
+        height: '100vh',
         background: 'var(--bg-main)',
-        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
+      <PublicNavbar
+        currentView="login"
+        onNavigateHome={onNavigateBack}
+        onNavigateLogin={(r) => handleRoleChange(r)}
+        onNavigateRegister={onNavigateRegister}
+      />
+
       <div
+        className="page-content-scroll"
         style={{
-          width: '100%',
-          maxWidth: '460px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem 1.5rem',
+          position: 'relative',
         }}
       >
-        {/* Back button */}
-        <button
-          onClick={onNavigateBack}
-          className="btn-ghost btn-sm"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '460px',
+          }}
         >
-          <ChevronLeft size={16} /> Back to Home
-        </button>
+          {/* Back button */}
+          <button
+            onClick={onNavigateBack}
+            className="btn-ghost btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}
+          >
+            <ChevronLeft size={16} /> Back to Home
+          </button>
 
         {/* Card */}
         <div className="card card-glow glass-panel" style={{ padding: '2.25rem' }}>
@@ -114,7 +136,7 @@ export const LoginPage = ({
           >
             <button
               type="button"
-              onClick={() => setRole('student')}
+              onClick={() => handleRoleChange('student')}
               style={{
                 padding: '0.5rem',
                 borderRadius: 'var(--radius-sm)',
@@ -134,7 +156,7 @@ export const LoginPage = ({
 
             <button
               type="button"
-              onClick={() => setRole('staff')}
+              onClick={() => handleRoleChange('staff')}
               style={{
                 padding: '0.5rem',
                 borderRadius: 'var(--radius-sm)',
@@ -154,7 +176,7 @@ export const LoginPage = ({
 
             <button
               type="button"
-              onClick={() => setRole('admin')}
+              onClick={() => handleRoleChange('admin')}
               style={{
                 padding: '0.5rem',
                 borderRadius: 'var(--radius-sm)',
@@ -174,24 +196,23 @@ export const LoginPage = ({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleLogin} autoComplete="off">
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type="email"
+                  name="auth_user_email"
+                  id="auth_user_email"
                   className="form-input"
-                  placeholder={
-                    role === 'student'
-                      ? 'student@biew.edu.in'
-                      : role === 'staff'
-                      ? 'staff@biew.edu.in'
-                      : 'admin@biew.edu.in'
-                  }
+                  placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
-                  autoComplete="username"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   required
                 />
                 <Mail
@@ -207,12 +228,14 @@ export const LoginPage = ({
               <div style={{ position: 'relative' }}>
                 <input
                   type="password"
+                  name="auth_user_secret"
+                  id="auth_user_secret"
                   className="form-input"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   required
                 />
                 <Lock
@@ -260,5 +283,6 @@ export const LoginPage = ({
         </div>
       </div>
     </div>
+  </div>
   );
 };

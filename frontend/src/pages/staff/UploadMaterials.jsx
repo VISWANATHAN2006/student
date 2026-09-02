@@ -197,8 +197,8 @@ export const UploadMaterials = ({ defaultCategory = 'notes' }) => {
                 className="form-input"
                 placeholder={
                   category === 'notes'
-                    ? 'e.g. Unit 3 - Multithreading and Collections'
-                    : 'e.g. November 2025 University Exam Paper'
+                    ? 'Enter study note / material title'
+                    : 'Enter question paper / bank title'
                 }
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}

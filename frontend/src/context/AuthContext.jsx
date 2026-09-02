@@ -88,29 +88,29 @@ export const AuthProvider = ({ children }) => {
   const loginDemo = (role) => {
     let mockUser = {
       id: 1,
-      full_name: 'Viswanathan R',
+      full_name: 'Student User',
       email: 'student@biew.edu.in',
       user_type: 'student',
-      reg_no: '953621104001',
-      class_name: 'III BCA - A',
+      reg_no: '',
+      class_name: '',
     };
 
     if (role === 'staff') {
       mockUser = {
         id: 101,
-        full_name: 'Dr. K. Anbarasan (Faculty)',
+        full_name: 'Faculty Staff',
         email: 'staff@biew.edu.in',
         user_type: 'staff',
         role_type: 'both',
-        department: 'Computer Applications',
+        department: '',
       };
     } else if (role === 'admin') {
       mockUser = {
         id: 999,
-        full_name: 'Dr. M. Senthil Kumar (Principal)',
+        full_name: 'Administrator',
         email: 'admin@biew.edu.in',
         user_type: 'admin',
-        designation: 'Principal',
+        designation: 'Admin',
       };
     }
 

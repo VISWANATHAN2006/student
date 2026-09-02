@@ -30,12 +30,12 @@ export const StaffDashboard = ({ onNavigate }) => {
       } catch (err) {
         // Fallback demo data
         setDashboard({
-          full_name: user?.full_name || 'Dr. K. Anbarasan',
+          full_name: user?.full_name || '',
           role_type: user?.role_type || 'both',
-          class_name: 'III BCA - A',
-          subject_names: ['Java Programming', 'Data Structures', 'Web Technology Lab'],
-          total_students: 48,
-          pending_marks_count: 5,
+          class_name: '',
+          subject_names: [],
+          total_students: 0,
+          pending_marks_count: 0,
         });
       } finally {
         setLoading(false);

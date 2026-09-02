@@ -340,7 +340,7 @@ export const ManageClasses = () => {
             <input
               type="text"
               className="form-input"
-              placeholder="e.g. III BCA - A, II B.Sc CS"
+              placeholder="Enter class name"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
               required
@@ -352,7 +352,7 @@ export const ManageClasses = () => {
             <input
               type="text"
               className="form-input"
-              placeholder="e.g. Computer Applications"
+              placeholder="Enter department name"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
               required
@@ -402,7 +402,7 @@ export const ManageClasses = () => {
             <input
               type="text"
               className="form-input"
-              placeholder="e.g. Python Programming &amp; Frameworks"
+              placeholder="Enter subject / course title"
               value={subjectName}
               onChange={(e) => setSubjectName(e.target.value)}
               required
