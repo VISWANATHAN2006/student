@@ -13,6 +13,8 @@ import {
   Zap,
   ChevronLeft,
   Server,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export const LoginPage = ({
@@ -24,6 +26,7 @@ export const LoginPage = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { login, loginDemo, backendOnline } = useAuth();
   const toast = useToast();
@@ -221,22 +224,45 @@ export const LoginPage = ({
               <label className="form-label">Password</label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="auth_user_secret"
                   id="auth_user_secret"
                   className="form-input"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ paddingLeft: '2.5rem' }}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.75rem' }}
                   autoComplete="new-password"
                   required
                 />
                 <Lock
                   size={17}
                   color="var(--text-muted)"
-                  style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }}
+                  style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '0.1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: 'var(--text-muted)',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
               </div>
             </div>
 

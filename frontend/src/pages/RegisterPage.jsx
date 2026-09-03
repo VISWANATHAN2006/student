@@ -14,6 +14,8 @@ import {
   Calendar,
   Building,
   Hash,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavigateBack }) => {
@@ -21,6 +23,9 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
   const [classes, setClasses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showStudentPwd, setShowStudentPwd] = useState(false);
+  const [showStaffPwd, setShowStaffPwd] = useState(false);
+  const [showAdminPwd, setShowAdminPwd] = useState(false);
   const toast = useToast();
 
   // Student Form State
@@ -370,15 +375,41 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
                 <div className="form-group">
                   <label className="form-label">Password *</label>
-                  <input
-                    type="password"
-                    className="form-input"
-                    placeholder="••••••••"
-                    value={studentForm.password}
-                    onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })}
-                    autoComplete="new-password"
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showStudentPwd ? 'text' : 'password'}
+                      className="form-input"
+                      placeholder="••••••••"
+                      value={studentForm.password}
+                      onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })}
+                      autoComplete="new-password"
+                      style={{ paddingRight: '2.75rem' }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowStudentPwd((v) => !v)}
+                      aria-label={showStudentPwd ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0.1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: 'var(--text-muted)',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                    >
+                      {showStudentPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -455,15 +486,41 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
                 <div className="form-group">
                   <label className="form-label">Password *</label>
-                  <input
-                    type="password"
-                    className="form-input"
-                    placeholder="••••••••"
-                    value={staffForm.password}
-                    onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
-                    autoComplete="new-password"
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showStaffPwd ? 'text' : 'password'}
+                      className="form-input"
+                      placeholder="••••••••"
+                      value={staffForm.password}
+                      onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+                      autoComplete="new-password"
+                      style={{ paddingRight: '2.75rem' }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowStaffPwd((v) => !v)}
+                      aria-label={showStaffPwd ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0.1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: 'var(--text-muted)',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                    >
+                      {showStaffPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -522,15 +579,41 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
                 <div className="form-group">
                   <label className="form-label">Password *</label>
-                  <input
-                    type="password"
-                    className="form-input"
-                    placeholder="••••••••"
-                    value={adminForm.password}
-                    onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
-                    autoComplete="new-password"
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showAdminPwd ? 'text' : 'password'}
+                      className="form-input"
+                      placeholder="••••••••"
+                      value={adminForm.password}
+                      onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                      autoComplete="new-password"
+                      style={{ paddingRight: '2.75rem' }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminPwd((v) => !v)}
+                      aria-label={showAdminPwd ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0.1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: 'var(--text-muted)',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                    >
+                      {showAdminPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
