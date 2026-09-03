@@ -87,16 +87,16 @@ export const StudentDashboard = ({ onNavigate }) => {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <Badge variant="primary">🎓 Student Portal</Badge>
+            <Badge variant="primary">🎓 Student</Badge>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
               Reg No: <strong>{stats?.reg_no || '953621104001'}</strong>
             </span>
           </div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800 }}>
-            Welcome back, {stats?.full_name || user?.full_name}! 👋
+            Welcome, {stats?.full_name || user?.full_name}! 👋
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', fontSize: '0.95rem' }}>
-            Class: <strong style={{ color: 'var(--text-primary)' }}>{stats?.class_name || 'Enrolled Class'}</strong> | Semester Academic Progress Overview
+            Class: <strong style={{ color: 'var(--text-primary)' }}>{stats?.class_name || 'Enrolled Class'}</strong> | Here is your summary for this semester
           </p>
         </div>
 
@@ -105,13 +105,13 @@ export const StudentDashboard = ({ onNavigate }) => {
             onClick={() => onNavigate('attendance')}
             className="btn btn-primary btn-sm"
           >
-            <CalendarCheck size={16} /> Attendance Tracker
+            <CalendarCheck size={16} /> View Attendance
           </button>
           <button
             onClick={() => onNavigate('notes')}
             className="btn btn-secondary btn-sm"
           >
-            <BookOpen size={16} /> View Notes
+            <BookOpen size={16} /> Study Notes
           </button>
         </div>
       </div>
@@ -119,15 +119,15 @@ export const StudentDashboard = ({ onNavigate }) => {
       {/* KPI Stats Grid */}
       <div className="stats-grid">
         <StatCard
-          title="Attendance Rate"
+          title="Attendance"
           value={`${stats?.attendance_percentage ?? 0}%`}
           subtext={
             stats?.attendance_percentage >= 75 ? (
               <span style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <CheckCircle2 size={13} /> Eligible for exams (&gt;75%)
+                <CheckCircle2 size={13} /> Good Attendance (&gt;75%)
               </span>
             ) : (
-              <span style={{ color: '#fb7185' }}>⚠ Low Attendance Warning (&lt;75%)</span>
+              <span style={{ color: '#fb7185' }}>⚠ Low Attendance (&lt;75%)</span>
             )
           }
           icon={CalendarCheck}
@@ -136,27 +136,27 @@ export const StudentDashboard = ({ onNavigate }) => {
         />
 
         <StatCard
-          title="Internal Marks Total"
+          title="Total Marks"
           value={`${stats?.total_marks_obtained ?? 0} / ${stats?.total_max_marks ?? 0}`}
-          subtext={`Cumulative Score: ${marksPercentage}%`}
+          subtext={`Score: ${marksPercentage}%`}
           icon={Award}
           colorVariant="warning"
           onClick={() => onNavigate('marks')}
         />
 
         <StatCard
-          title="Active Subjects"
+          title="Subjects"
           value={stats?.subject_count ?? 6}
-          subtext="Enrolled this semester"
+          subtext="This semester"
           icon={BookOpen}
           colorVariant="cyan"
           onClick={() => onNavigate('notes')}
         />
 
         <StatCard
-          title="Notices &amp; Circulars"
+          title="Announcements"
           value={recentNotices.length}
-          subtext="Latest announcements"
+          subtext="Recent notices"
           icon={Bell}
           colorVariant="purple"
           onClick={() => onNavigate('announcements')}
@@ -169,7 +169,7 @@ export const StudentDashboard = ({ onNavigate }) => {
         <div className="card glass-panel">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
             <h3 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUp size={20} color="var(--primary-400)" /> Attendance Overview
+              <TrendingUp size={20} color="var(--primary-400)" /> Attendance
             </h3>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Target: 85%+</span>
           </div>
@@ -219,7 +219,7 @@ export const StudentDashboard = ({ onNavigate }) => {
             }}
           >
             <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-              Quick Navigation Shortcuts
+              Quick Links
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
               <button
@@ -227,7 +227,7 @@ export const StudentDashboard = ({ onNavigate }) => {
                 className="btn btn-secondary btn-sm"
                 style={{ justifyContent: 'space-between' }}
               >
-                <span>Full Attendance Log</span>
+                <span>Attendance</span>
                 <ArrowUpRight size={14} />
               </button>
               <button
@@ -235,7 +235,7 @@ export const StudentDashboard = ({ onNavigate }) => {
                 className="btn btn-secondary btn-sm"
                 style={{ justifyContent: 'space-between' }}
               >
-                <span>Grade Breakdown</span>
+                <span>Marks</span>
                 <ArrowUpRight size={14} />
               </button>
               <button

@@ -63,10 +63,10 @@ export const StudentAttendance = () => {
         <div className="page-title-group">
           <h1>
             <CalendarCheck size={28} color="var(--primary-400)" />
-            My Attendance Record
+            My Attendance
           </h1>
           <p className="page-subtitle">
-            Comprehensive session-by-session presence tracking and monthly evaluation
+            Track your daily attendance and monthly records
           </p>
         </div>
 
@@ -109,33 +109,33 @@ export const StudentAttendance = () => {
       {/* Summary KPI grid */}
       <div className="stats-grid">
         <StatCard
-          title="Overall Attendance"
+          title="Total Attendance"
           value={`${summary?.percentage ?? 0}%`}
-          subtext={summary?.percentage >= 75 ? 'Above 75% requirement' : 'Below 75% threshold'}
+          subtext={summary?.percentage >= 75 ? 'Good (Above 75%)' : 'Low (Below 75%)'}
           icon={CalendarCheck}
           colorVariant={summary?.percentage >= 75 ? 'success' : 'danger'}
         />
 
         <StatCard
-          title="Present Days"
+          title="Days Present"
           value={summary?.present ?? 0}
-          subtext="Sessions attended"
+          subtext="Classes attended"
           icon={CheckCircle}
           colorVariant="success"
         />
 
         <StatCard
-          title="Absent Days"
+          title="Days Absent"
           value={summary?.absent ?? 0}
-          subtext="Sessions missed"
+          subtext="Classes missed"
           icon={XCircle}
           colorVariant="danger"
         />
 
         <StatCard
-          title="Approved Leave"
+          title="Leave Days"
           value={summary?.leave ?? 0}
-          subtext="Official leave recorded"
+          subtext="Approved leave"
           icon={Clock}
           colorVariant="warning"
         />

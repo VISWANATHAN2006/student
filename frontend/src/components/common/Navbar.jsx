@@ -200,11 +200,11 @@ export const Navbar = ({ toggleSidebar, onBack }) => {
       <Modal
         isOpen={showConfigModal}
         onClose={() => setShowConfigModal(false)}
-        title="FastAPI Server Connection Settings"
+        title="Server Settings"
       >
         <form onSubmit={handleSaveApiUrl}>
           <div className="form-group">
-            <label className="form-label">FastAPI Backend URL</label>
+            <label className="form-label">Server URL</label>
             <input
               type="text"
               className="form-input"
@@ -214,7 +214,7 @@ export const Navbar = ({ toggleSidebar, onBack }) => {
               required
             />
             <span style={{ fontSize: '0.775rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Default FastAPI server runs on <code>http://127.0.0.1:8000</code>.
+              Default server runs on <code>http://127.0.0.1:8000</code>.
             </span>
           </div>
 
@@ -229,7 +229,7 @@ export const Navbar = ({ toggleSidebar, onBack }) => {
             }}
           >
             <div style={{ fontWeight: 600, color: 'var(--primary-300)', marginBottom: '4px' }}>
-              💡 How to run your backend:
+              💡 How to start the server:
             </div>
             <code style={{ display: 'block', background: 'rgba(0,0,0,0.3)', padding: '6px 10px', borderRadius: '4px', margin: '4px 0' }}>
               cd Student_Manegment &amp;&amp; python -m uvicorn app.main:app --reload
@@ -245,10 +245,10 @@ export const Navbar = ({ toggleSidebar, onBack }) => {
                 toast.info('Testing connection...');
               }}
             >
-              <RefreshCw size={15} /> Test Health
+              <RefreshCw size={15} /> Test Connection
             </button>
             <button type="submit" className="btn btn-primary">
-              Save &amp; Connect
+              Save
             </button>
           </div>
         </form>

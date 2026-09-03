@@ -61,10 +61,10 @@ export const StudentAnnouncements = () => {
         <div className="page-title-group">
           <h1>
             <Bell size={28} color="#fbbf24" />
-            Announcements &amp; Circulars
+            Announcements
           </h1>
           <p className="page-subtitle">
-            Stay updated with college notices, exam circulars, and departmental memos
+            Read the latest college notices, exam schedules, and messages
           </p>
         </div>
 

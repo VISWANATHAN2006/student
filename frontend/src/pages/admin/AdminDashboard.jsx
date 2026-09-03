@@ -75,14 +75,14 @@ export const AdminDashboard = ({ onNavigate }) => {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <Badge variant="danger">🏛️ Principal &amp; Dean Portal</Badge>
-            <Badge variant="primary">Institution Level Administration</Badge>
+            <Badge variant="danger">🏛️ Admin Portal</Badge>
+            <Badge variant="primary">College Admin</Badge>
           </div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800 }}>
-            Executive College Management System
+            Admin Dashboard
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', fontSize: '0.95rem' }}>
-            Student Management Central Administration — Monitor academic structures, faculty assignments, and students.
+            Manage students, staff, classes, and departments.
           </p>
         </div>
 
@@ -92,13 +92,13 @@ export const AdminDashboard = ({ onNavigate }) => {
             className="btn btn-primary btn-sm"
             style={{ background: 'var(--grad-danger)' }}
           >
-            <Layers size={16} /> Manage Classes &amp; Subjects
+            <Layers size={16} /> Classes &amp; Subjects
           </button>
           <button
             onClick={() => onNavigate('manage-staff')}
             className="btn btn-secondary btn-sm"
           >
-            <Users size={16} /> Assign Staff
+            <Users size={16} /> Staff
           </button>
         </div>
       </div>
@@ -106,7 +106,7 @@ export const AdminDashboard = ({ onNavigate }) => {
       {/* KPI Stats */}
       <div className="stats-grid">
         <StatCard
-          title="Total Enrolled Students"
+          title="Total Students"
           value={overview?.total_students ?? 128}
           subtext="Active in portal"
           icon={GraduationCap}

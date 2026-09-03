@@ -97,24 +97,27 @@ export const PublicNavbar = ({
             <Menu size={22} />
           </button>
 
-          <button
-            className="btn-ghost"
-            onClick={handleBack}
-            aria-label="Go back"
-            title="Go back"
-            style={{
-              padding: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)',
-              background: 'rgba(255, 255, 255, 0.03)',
-              flexShrink: 0,
-            }}
-          >
-            <ArrowLeft size={20} />
-          </button>
+          {/* Back button - only rendered on inner/subpages, hidden on the first page */}
+          {currentView !== 'landing' && (
+            <button
+              className="btn-ghost"
+              onClick={handleBack}
+              aria-label="Go back"
+              title="Go back"
+              style={{
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                flexShrink: 0,
+              }}
+            >
+              <ArrowLeft size={20} />
+            </button>
+          )}
 
           <div
             onClick={() => onNavigateHome && onNavigateHome()}
@@ -187,16 +190,8 @@ export const PublicNavbar = ({
             {theme === 'dark' ? <Sun size={17} color="#fbbf24" /> : <Moon size={17} color="#6366f1" />}
           </button>
 
-          {/* Primary Action */}
-          {currentView === 'landing' ? (
-            <button
-              onClick={() => onNavigateLogin && onNavigateLogin('student')}
-              className="btn btn-primary btn-sm"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <LogIn size={15} /> Sign In
-            </button>
-          ) : (
+          {/* Right Action - Home button on subpages */}
+          {currentView !== 'landing' && (
             <button
               onClick={() => onNavigateHome && onNavigateHome()}
               className="btn btn-secondary btn-sm"
@@ -255,7 +250,7 @@ export const PublicNavbar = ({
                   fontWeight: 600,
                 }}
               >
-                Quick Navigation
+                Menu
               </div>
             </div>
           </div>
@@ -273,7 +268,7 @@ export const PublicNavbar = ({
               color: 'var(--text-muted)',
             }}
           >
-            Portals &amp; Sign In
+            Portals
           </div>
 
           <button
@@ -281,7 +276,7 @@ export const PublicNavbar = ({
             onClick={() => handleNav(onNavigateHome)}
           >
             <Home size={18} />
-            <span>Home / Welcome</span>
+            <span>Home</span>
           </button>
 
           <button
@@ -325,7 +320,7 @@ export const PublicNavbar = ({
               color: 'var(--text-muted)',
             }}
           >
-            Account &amp; Registration
+            Account
           </div>
 
           <button
@@ -333,7 +328,7 @@ export const PublicNavbar = ({
             onClick={() => handleNav(() => onNavigateRegister && onNavigateRegister('student'))}
           >
             <UserPlus size={18} />
-            <span>Register New Account</span>
+            <span>Register Account</span>
           </button>
         </nav>
 
@@ -363,7 +358,7 @@ export const PublicNavbar = ({
                 }}
               />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                Backend: {backendOnline ? 'Online' : 'Offline'}
+                Server: {backendOnline ? 'Connected' : 'Not Connected'}
               </span>
             </div>
 
@@ -374,7 +369,7 @@ export const PublicNavbar = ({
               }}
               className="btn-ghost"
               style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-              title="Configure API Server"
+              title="Server Settings"
             >
               <Server size={14} />
             </button>
@@ -388,11 +383,11 @@ export const PublicNavbar = ({
           >
             {theme === 'dark' ? (
               <>
-                <Sun size={15} color="#fbbf24" /> Switch to Light Mode
+                <Sun size={15} color="#fbbf24" /> Light Mode
               </>
             ) : (
               <>
-                <Moon size={15} color="#6366f1" /> Switch to Dark Mode
+                <Moon size={15} color="#6366f1" /> Dark Mode
               </>
             )}
           </button>

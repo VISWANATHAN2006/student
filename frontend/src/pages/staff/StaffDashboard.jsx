@@ -68,17 +68,17 @@ export const StaffDashboard = ({ onNavigate }) => {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <Badge variant="cyan">👨‍🏫 Faculty Portal</Badge>
+            <Badge variant="cyan">👨‍🏫 Staff</Badge>
             <Badge variant="primary">Role: {dashboard?.role_type?.toUpperCase()}</Badge>
           </div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800 }}>
-            Welcome, {dashboard?.full_name || user?.full_name}!
+            Welcome, {dashboard?.full_name || user?.full_name}! 👋
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', fontSize: '0.95rem' }}>
             {dashboard?.class_name ? (
-              <>Class Advisor for <strong style={{ color: 'var(--text-primary)' }}>{dashboard.class_name}</strong> | </>
+              <>Class Teacher: <strong style={{ color: 'var(--text-primary)' }}>{dashboard.class_name}</strong> | </>
             ) : null}
-            Handling {dashboard?.subject_names?.length || 0} Subject(s)
+            Teaching {dashboard?.subject_names?.length || 0} Subject(s)
           </p>
         </div>
 

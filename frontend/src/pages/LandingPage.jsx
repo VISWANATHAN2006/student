@@ -1,9 +1,10 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { PublicNavbar } from '../components/common/PublicNavbar';
+import { ArrowRight } from 'lucide-react';
 
 export const LandingPage = ({ onNavigateLogin, onNavigateRegister }) => {
-  const { loginDemo } = useAuth();
+  const { theme, toggleTheme } = useAuth();
 
   return (
     <div style={{ height: '100vh', background: 'var(--bg-main)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
@@ -23,7 +24,10 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister }) => {
         }}
       />
 
-      {/* Top Navbar with 3-line Menu */}
+      {/* Centered Watermark Logo Background */}
+      <div className="global-bg-watermark" />
+
+      {/* Top Navbar with 3-line Menu (without back arrow on first page) */}
       <PublicNavbar
         currentView="landing"
         onNavigateHome={() => {}}
@@ -60,6 +64,23 @@ export const LandingPage = ({ onNavigateLogin, onNavigateRegister }) => {
           >
             Welcome!!!
           </p>
+
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => onNavigateLogin && onNavigateLogin('student')}
+              className="btn btn-primary"
+              style={{ padding: '0.85rem 2rem', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              Sign In <ArrowRight size={18} />
+            </button>
+            <button
+              onClick={() => onNavigateRegister && onNavigateRegister('student')}
+              className="btn btn-secondary"
+              style={{ padding: '0.85rem 2rem', fontSize: '1.05rem' }}
+            >
+              Register
+            </button>
+          </div>
 
         </main>
       </div>

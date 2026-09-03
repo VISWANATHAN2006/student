@@ -93,10 +93,10 @@ export const StudentMaterials = ({ initialTab = 'notes' }) => {
             ) : (
               <FileQuestion size={28} color="var(--accent-cyan)" />
             )}
-            Digital Academic Repository
+            Study Materials
           </h1>
           <p className="page-subtitle">
-            Download faculty uploaded course notes, lecture handouts, and previous exam question papers
+            Download study notes and previous question papers
           </p>
         </div>
 
@@ -125,7 +125,7 @@ export const StudentMaterials = ({ initialTab = 'notes' }) => {
               color: activeTab === 'notes' ? '#fff' : 'var(--text-secondary)',
             }}
           >
-            <BookOpen size={16} /> Course Notes
+            <BookOpen size={16} /> Study Notes
           </button>
           <button
             onClick={() => setActiveTab('qb')}

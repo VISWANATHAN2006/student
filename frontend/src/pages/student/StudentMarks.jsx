@@ -57,9 +57,9 @@ export const StudentMarks = () => {
   const overallPercentage = totalMax > 0 ? ((totalObtained / totalMax) * 100).toFixed(1) : 0;
 
   const getPerformanceBadge = (pct) => {
-    if (pct >= 85) return <Badge variant="success">Grade A+ (Distinction)</Badge>;
-    if (pct >= 70) return <Badge variant="primary">Grade A (First Class)</Badge>;
-    if (pct >= 50) return <Badge variant="warning">Grade B (Second Class)</Badge>;
+    if (pct >= 85) return <Badge variant="success">Grade A+ (Excellent)</Badge>;
+    if (pct >= 70) return <Badge variant="primary">Grade A (Good)</Badge>;
+    if (pct >= 50) return <Badge variant="warning">Grade B (Average)</Badge>;
     return <Badge variant="danger">Needs Improvement</Badge>;
   };
 
@@ -69,10 +69,10 @@ export const StudentMarks = () => {
         <div className="page-title-group">
           <h1>
             <Award size={28} color="var(--accent-amber)" />
-            Internal Assessment Report
+            My Marks
           </h1>
           <p className="page-subtitle">
-            Continuous Internal Assessment (CIA), Model Exams, and Term Scores
+            View your test marks, exam scores, and grades
           </p>
         </div>
       </div>
@@ -88,17 +88,17 @@ export const StudentMarks = () => {
         />
 
         <StatCard
-          title="Total Marks Scored"
+          title="Total Marks"
           value={`${totalObtained} / ${totalMax}`}
-          subtext="Cumulative score achieved"
+          subtext="Total marks scored"
           icon={Award}
           colorVariant="primary"
         />
 
         <StatCard
-          title="Total Evaluations"
+          title="Tests Conducted"
           value={marksList.length}
-          subtext="Assessment entries recorded"
+          subtext="Recorded exams"
           icon={BarChart}
           colorVariant="cyan"
         />

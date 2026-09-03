@@ -28,30 +28,30 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
 
   const studentMenu = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'attendance', label: 'My Attendance', icon: CalendarCheck },
-    { id: 'marks', label: 'My Marks & Grades', icon: Award },
+    { id: 'attendance', label: 'Attendance', icon: CalendarCheck },
+    { id: 'marks', label: 'Marks', icon: Award },
     { id: 'notes', label: 'Study Notes', icon: BookOpen },
     { id: 'question-bank', label: 'Question Bank', icon: FileQuestion },
     { id: 'announcements', label: 'Announcements', icon: Bell },
   ];
 
   const staffMenu = [
-    { id: 'dashboard', label: 'Staff Overview', icon: LayoutDashboard },
-    { id: 'pre-register', label: 'Pre-Register Students', icon: UserCheck },
-    { id: 'mark-attendance', label: 'Mark Attendance', icon: CalendarCheck },
-    { id: 'manage-marks', label: 'Manage Marks & Sheet', icon: ClipboardList },
-    { id: 'upload-notes', label: 'Upload Study Notes', icon: UploadCloud },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'pre-register', label: 'Add Students', icon: UserCheck },
+    { id: 'mark-attendance', label: 'Attendance', icon: CalendarCheck },
+    { id: 'manage-marks', label: 'Marks', icon: ClipboardList },
+    { id: 'upload-notes', label: 'Upload Notes', icon: UploadCloud },
     { id: 'upload-qb', label: 'Upload Question Bank', icon: FileText },
-    { id: 'announcements', label: 'Announcements & Circulars', icon: Megaphone },
+    { id: 'announcements', label: 'Announcements', icon: Megaphone },
   ];
 
   const adminMenu = [
-    { id: 'dashboard', label: 'College Overview', icon: BarChart3 },
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'manage-departments', label: 'Departments', icon: Layers },
     { id: 'manage-classes', label: 'Classes & Subjects', icon: BookOpen },
-    { id: 'manage-staff', label: 'Staff & Assignments', icon: Users },
-    { id: 'manage-students', label: 'Students Portal', icon: GraduationCap },
-    { id: 'announcements', label: 'Announcements & Circulars', icon: Megaphone },
+    { id: 'manage-staff', label: 'Staff', icon: Users },
+    { id: 'manage-students', label: 'Students', icon: GraduationCap },
+    { id: 'announcements', label: 'Announcements', icon: Megaphone },
   ];
 
   let menuItems = studentMenu;

@@ -184,7 +184,8 @@ export const App = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ position: 'relative' }}>
+      <div className="global-bg-watermark" />
       {isSidebarOpen && (
         <div 
           className="sidebar-overlay" 
@@ -192,7 +193,7 @@ export const App = () => {
         />
       )}
       <Sidebar activeTab={activeTab} setActiveTab={handleNavigateTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      <div className="main-content">
+      <div className="main-content" style={{ position: 'relative', zIndex: 1 }}>
         <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onBack={handleBack} />
         <div className="page-content-scroll">
           {renderContent()}

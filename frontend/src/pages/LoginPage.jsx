@@ -65,8 +65,10 @@ export const LoginPage = ({
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      <div className="global-bg-watermark" />
       <PublicNavbar
         currentView="login"
         onNavigateHome={onNavigateBack}
@@ -116,9 +118,9 @@ export const LoginPage = ({
             >
               <img src={logo} alt="College Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Sign In to Student Management</h2>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Sign In</h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-              Sign in to Student Management as {role === 'student' ? 'Student' : role === 'staff' ? 'Faculty Staff' : 'Administrator'}
+              Choose your role and enter your details to sign in
             </p>
           </div>
 
@@ -205,7 +207,7 @@ export const LoginPage = ({
                   name="auth_user_email"
                   id="auth_user_email"
                   className="form-input"
-                  placeholder="Enter your email address"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
@@ -231,7 +233,7 @@ export const LoginPage = ({
                   name="auth_user_secret"
                   id="auth_user_secret"
                   className="form-input"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
@@ -252,7 +254,7 @@ export const LoginPage = ({
               style={{ width: '100%', marginTop: '0.75rem', padding: '0.8rem' }}
               disabled={loading}
             >
-              {loading ? 'Authenticating...' : `Sign in as ${role.toUpperCase()}`}
+              {loading ? 'Signing in...' : `Sign In as ${role === 'student' ? 'Student' : role === 'staff' ? 'Staff' : 'Admin'}`}
             </button>
           </form>
 
@@ -267,7 +269,7 @@ export const LoginPage = ({
               color: 'var(--text-secondary)',
             }}
           >
-            Don't have an account yet?{' '}
+            Need an account?{' '}
             <button
               onClick={() => onNavigateRegister(role)}
               style={{

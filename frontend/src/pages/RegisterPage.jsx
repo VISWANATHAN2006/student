@@ -141,8 +141,10 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      <div className="global-bg-watermark" />
       <PublicNavbar
         currentView="register"
         onNavigateHome={onNavigateBack}
@@ -170,9 +172,9 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
 
         <div className="card card-glow glass-panel" style={{ padding: '2.25rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Create New Account</h2>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Create Account</h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-              Register as Student, Faculty Staff, or Administrator
+              Choose your role and enter your details to sign up
             </p>
           </div>
 

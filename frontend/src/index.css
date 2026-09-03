@@ -799,3 +799,30 @@ button {
   max-width: 360px;
   margin-top: 0.35rem;
 }
+
+/* =========================================================
+   Global Background Logo Watermark
+   ========================================================= */
+.global-bg-watermark {
+  position: fixed;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(500px, 75vw);
+  height: min(500px, 75vw);
+  background-image: url('./assets/logo.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+  opacity: 0.22;
+  filter: drop-shadow(0 0 45px rgba(99, 102, 241, 0.45));
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  transition: opacity var(--transition-normal), filter var(--transition-normal);
+}
+
+[data-theme='light'] .global-bg-watermark {
+  opacity: 0.28;
+  filter: contrast(1.25) brightness(0.82) drop-shadow(0 0 30px rgba(0, 0, 0, 0.2));
+}
