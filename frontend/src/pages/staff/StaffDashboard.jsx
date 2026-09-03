@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { staffApi } from '../../api/staff';
+import { attendanceApi } from '../../api/attendance';
+import { academicApi } from '../../api/academic';
 import { StatCard } from '../../components/common/StatCard';
 import { Badge } from '../../components/common/Badge';
 import { Loader } from '../../components/common/Loader';
@@ -13,13 +15,17 @@ import {
   BookOpen,
   AlertCircle,
   ArrowRight,
-  GraduationCap
+  GraduationCap,
+  AlertTriangle,
+  Bell,
 } from 'lucide-react';
 
 export const StaffDashboard = ({ onNavigate }) => {
   const { user } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lowAttendanceList, setLowAttendanceList] = useState([]);
+  const [sendingAlert, setSendingAlert] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -44,6 +50,35 @@ export const StaffDashboard = ({ onNavigate }) => {
 
     fetchStats();
   }, [user?.id]);
+
+  // Load low attendance once we know the first class
+  useEffect(() => {
+    const loadLowAttendance = async () => {
+      try {
+        const classes = await academicApi.getClasses();
+        if (classes && classes.length > 0) {
+          const data = await attendanceApi.getClassLowAttendance(classes[0].id, 75.0);
+          setLowAttendanceList(data || []);
+        }
+      } catch (e) {
+        // ignore – best effort
+      }
+    };
+    loadLowAttendance();
+  }, []);
+
+  const handleNotifyLowAttendance = async () => {
+    try {
+      const classes = await academicApi.getClasses();
+      if (!classes || classes.length === 0) return;
+      setSendingAlert(true);
+      await attendanceApi.notifyLowAttendance(classes[0].id, 75.0);
+    } catch (e) {
+      // ignore
+    } finally {
+      setSendingAlert(false);
+    }
+  };
 
   if (loading && !dashboard) {
     return <Loader text="Loading faculty workspace..." />;
@@ -144,6 +179,67 @@ export const StaffDashboard = ({ onNavigate }) => {
           colorVariant="purple"
         />
       </div>
+
+      {/* ── LOW ATTENDANCE ALERT PANEL ── */}
+      {lowAttendanceList.length > 0 && (
+        <div
+          style={{
+            padding: '1.25rem 1.5rem',
+            marginBottom: '1.5rem',
+            borderRadius: 'var(--radius-lg)',
+            background: 'rgba(244, 63, 94, 0.08)',
+            border: '1px solid rgba(244, 63, 94, 0.28)',
+            borderLeft: '4px solid #f43f5e',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fb7185', fontWeight: 700, fontSize: '1rem', marginBottom: '0.35rem' }}>
+              <AlertTriangle size={18} />
+              Low Attendance Alert — {lowAttendanceList.length} Student(s) Below 75%
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              {lowAttendanceList.slice(0, 4).map((s) => `${s.full_name} (${s.percentage}%)`).join(', ')}
+              {lowAttendanceList.length > 4 ? ` and ${lowAttendanceList.length - 4} more...` : ''}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => onNavigate('mark-attendance')}
+              style={{
+                padding: '0.5rem 1rem', borderRadius: 'var(--radius-sm)',
+                background: 'rgba(244,63,94,0.12)',
+                border: '1px solid rgba(244,63,94,0.3)',
+                color: '#fb7185', fontWeight: 600, fontSize: '0.825rem',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem',
+              }}
+            >
+              <ArrowRight size={14} /> View Full List
+            </button>
+            <button
+              onClick={handleNotifyLowAttendance}
+              disabled={sendingAlert}
+              style={{
+                padding: '0.5rem 1.1rem', borderRadius: 'var(--radius-sm)',
+                background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                border: 'none',
+                color: '#fff', fontWeight: 700, fontSize: '0.825rem',
+                cursor: sendingAlert ? 'not-allowed' : 'pointer',
+                opacity: sendingAlert ? 0.75 : 1,
+                display: 'flex', alignItems: 'center', gap: '0.35rem',
+                boxShadow: '0 2px 8px rgba(225,29,72,0.35)',
+              }}
+            >
+              <Bell size={14} />
+              {sendingAlert ? 'Sending...' : 'Broadcast Warning'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions Grid */}
       <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', fontWeight: 700 }}>

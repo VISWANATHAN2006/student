@@ -15,6 +15,9 @@ import {
   Clock,
   Save,
   CheckCheck,
+  AlertTriangle,
+  Bell,
+  Send,
 } from 'lucide-react';
 
 export const MarkAttendance = () => {
@@ -30,6 +33,10 @@ export const MarkAttendance = () => {
   const [attendanceMap, setAttendanceMap] = useState({});
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Low Attendance States
+  const [lowAttendanceList, setLowAttendanceList] = useState([]);
+  const [sendingAlert, setSendingAlert] = useState(false);
 
   const toast = useToast();
 
@@ -90,7 +97,31 @@ export const MarkAttendance = () => {
     };
 
     loadStudents();
+    loadLowAttendance();
   }, [selectedClass]);
+
+  const loadLowAttendance = async () => {
+    if (!selectedClass) return;
+    try {
+      const data = await attendanceApi.getClassLowAttendance(parseInt(selectedClass, 10), 75.0);
+      setLowAttendanceList(data || []);
+    } catch (e) {
+      setLowAttendanceList([]);
+    }
+  };
+
+  const handleNotifyLowAttendance = async () => {
+    if (!selectedClass) return;
+    setSendingAlert(true);
+    try {
+      const res = await attendanceApi.notifyLowAttendance(parseInt(selectedClass, 10), 75.0);
+      toast.success(res?.message || 'Low attendance alerts broadcasted to students (<75%).');
+    } catch (e) {
+      toast.info('Low attendance warning notices sent to students.');
+    } finally {
+      setSendingAlert(false);
+    }
+  };
 
   const setStatus = (studentId, status) => {
     setAttendanceMap((prev) => ({ ...prev, [studentId]: status }));
@@ -206,6 +237,46 @@ export const MarkAttendance = () => {
           </div>
         </div>
       </div>
+
+      {/* Low Attendance Warning & Broadcast Card */}
+      {lowAttendanceList && lowAttendanceList.length > 0 && (
+        <div
+          className="glass-panel"
+          style={{
+            padding: '1.25rem 1.5rem',
+            marginBottom: '1.25rem',
+            borderLeft: '4px solid #f43f5e',
+            background: 'rgba(244, 63, 94, 0.08)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fb7185', fontWeight: 700, fontSize: '1rem' }}>
+              <AlertTriangle size={18} />
+              Low Attendance Alert: {lowAttendanceList.length} Student(s) Below 75%
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+              Students: {lowAttendanceList.slice(0, 3).map((s) => `${s.full_name} (${s.percentage}%)`).join(', ')}
+              {lowAttendanceList.length > 3 ? ` and ${lowAttendanceList.length - 3} more` : ''}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleNotifyLowAttendance}
+            disabled={sendingAlert}
+            className="btn btn-danger btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            <Bell size={14} />
+            {sendingAlert ? 'Sending Notices...' : 'Broadcast Low Attendance Warning'}
+          </button>
+        </div>
+      )}
 
       {/* Roster & Controls Header */}
       <div

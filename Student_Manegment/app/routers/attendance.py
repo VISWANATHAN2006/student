@@ -93,3 +93,71 @@ def get_attendance_summary(
     return AttendanceSummaryResponse(
         total_marked=total, present=present, absent=absent, leave=leave, percentage=percentage
     )
+
+
+@router.get("/class/{class_id}/low-attendance")
+def get_class_low_attendance(
+    class_id: int,
+    threshold: float = 75.0,
+    db: Session = Depends(get_db),
+    current=Depends(require_staff),
+):
+    from app.models.student import Student
+    students = db.query(Student).filter(Student.class_id == class_id).all()
+    low_attendance_students = []
+    for s in students:
+        records = db.query(Attendance).filter(Attendance.student_id == s.id).all()
+        total = len(records)
+        present = sum(1 for r in records if r.status == AttendanceStatus.present)
+        pct = round((present / total) * 100, 1) if total > 0 else 0.0
+        if total > 0 and pct < threshold:
+            low_attendance_students.append({
+                "student_id": s.id,
+                "reg_no": s.reg_no,
+                "full_name": s.full_name,
+                "total_classes": total,
+                "present_count": present,
+                "percentage": pct
+            })
+    return low_attendance_students
+
+
+@router.post("/class/{class_id}/notify-low-attendance")
+def notify_low_attendance(
+    class_id: int,
+    threshold: float = 75.0,
+    custom_message: str | None = None,
+    db: Session = Depends(get_db),
+    current=Depends(require_staff),
+):
+    from app.models.student import Student
+    from app.models.notification import Notification, NotificationTarget
+    staff = current["user"]
+    students = db.query(Student).filter(Student.class_id == class_id).all()
+    low_students = []
+    for s in students:
+        records = db.query(Attendance).filter(Attendance.student_id == s.id).all()
+        total = len(records)
+        present = sum(1 for r in records if r.status == AttendanceStatus.present)
+        pct = round((present / total) * 100, 1) if total > 0 else 0.0
+        if total > 0 and pct < threshold:
+            low_students.append((s, pct))
+
+    if low_students:
+        msg = custom_message or f"Attendance Alert: Notice to students with low attendance (below {threshold}%). Please meet your class teacher immediately to prevent exam ineligibility."
+        notif = Notification(
+            title="⚠️ Low Attendance Warning (<75%)",
+            body=msg,
+            target_type=NotificationTarget.class_,
+            target_id=class_id,
+            created_by_staff_id=staff.id,
+        )
+        db.add(notif)
+        db.commit()
+
+    return {
+        "status": "success",
+        "alerted_students": len(low_students),
+        "message": f"Low attendance warning broadcasted for {len(low_students)} student(s) below {threshold}%."
+    }
+

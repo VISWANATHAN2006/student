@@ -22,4 +22,20 @@ export const attendanceApi = {
     const response = await apiClient.get(`/attendance/student/${studentId}/summary`);
     return response.data;
   },
+
+  // Get low attendance students for a class (<75%)
+  getClassLowAttendance: async (classId, threshold = 75.0) => {
+    const response = await apiClient.get(`/attendance/class/${classId}/low-attendance`, {
+      params: { threshold }
+    });
+    return response.data;
+  },
+
+  // Broadcast low attendance notification to class
+  notifyLowAttendance: async (classId, threshold = 75.0, customMessage = null) => {
+    const response = await apiClient.post(`/attendance/class/${classId}/notify-low-attendance`, null, {
+      params: { threshold, custom_message: customMessage }
+    });
+    return response.data;
+  },
 };

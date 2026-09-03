@@ -17,6 +17,7 @@ import {
   Award,
   CheckCircle,
   Download,
+  AlertCircle,
 } from 'lucide-react';
 
 export const ManageMarks = () => {
@@ -160,6 +161,48 @@ export const ManageMarks = () => {
     } finally {
       setBulkLoading(false);
     }
+  };
+
+  // Generate & download a pre-filled CSV template for the selected class
+  const handleDownloadTemplate = () => {
+    const selectedClassObj = classes.find((c) => String(c.id) === String(selectedClass));
+    const className = selectedClassObj?.name || `Class-${selectedClass}`;
+
+    // Header row
+    const headers = ['Reg No', 'Student Name', 'CIA-1', 'CIA-2', 'CIA-3', 'Model Exam', 'Assignment'];
+
+    // Data rows: use loaded students, filter by class if possible
+    const rows = students.map((s) => [
+      s.reg_no || '',
+      s.full_name || '',
+      '', // CIA-1 placeholder
+      '', // CIA-2
+      '', // CIA-3
+      '', // Model Exam
+      '', // Assignment
+    ]);
+
+    if (rows.length === 0) {
+      // Add 5 blank placeholder rows so the template is not empty
+      for (let i = 1; i <= 5; i++) {
+        rows.push([`REG-00${i}`, '', '', '', '', '', '']);
+      }
+    }
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Marks_Template_${className.replace(/\s+/g, '_')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Template downloaded: ${link.download}`);
   };
 
   return (
@@ -450,11 +493,38 @@ export const ManageMarks = () => {
       {/* TAB 3: BULK EXCEL UPLOAD */}
       {activeTab === 'bulk' && (
         <div className="card glass-panel" style={{ maxWidth: '700px', margin: '0 auto', padding: '2rem' }}>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FileSpreadsheet size={22} color="#fbbf24" /> Bulk Upload Marks via Excel
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <FileSpreadsheet size={22} color="#fbbf24" /> Bulk Upload Marks via Excel
+            </h3>
+            {/* Download Template Button */}
+            <button
+              id="download-template-btn"
+              type="button"
+              onClick={handleDownloadTemplate}
+              style={{
+                padding: '0.55rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'linear-gradient(135deg, #059669, #047857)',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.825rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(5,150,105,0.35)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Download size={15} />
+              Download Template (.csv)
+            </button>
+          </div>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Upload entire class examination scores in <code>.xlsx</code> or <code>.xls</code> spreadsheet format.
+            Upload entire class examination scores in <code>.xlsx</code> or <code>.xls</code> spreadsheet format.&nbsp;
+            <span style={{ color: '#34d399', fontWeight: 600 }}>Download the pre-filled template</span> to get started quickly.
           </p>
 
           <form onSubmit={handleBulkUpload}>
@@ -472,27 +542,28 @@ export const ManageMarks = () => {
             {/* File Drag and Drop Zone */}
             <div
               style={{
-                border: '2px dashed var(--border-color)',
+                border: `2px dashed ${bulkFile ? 'var(--accent-cyan)' : 'var(--border-color)'}`,
                 borderRadius: 'var(--radius-lg)',
                 padding: '2.5rem 1.5rem',
                 textAlign: 'center',
-                background: 'rgba(255, 255, 255, 0.01)',
+                background: bulkFile ? 'rgba(6,182,212,0.04)' : 'rgba(255, 255, 255, 0.01)',
                 marginBottom: '1.5rem',
                 cursor: 'pointer',
+                transition: 'all 0.2s',
               }}
               onClick={() => document.getElementById('excel-file-input').click()}
             >
-              <Upload size={36} color="var(--primary-400)" style={{ margin: '0 auto 0.75rem' }} />
-              <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>
-                {bulkFile ? bulkFile.name : 'Click or drop .xlsx spreadsheet here'}
+              <Upload size={36} color={bulkFile ? 'var(--accent-cyan)' : 'var(--primary-400)'} style={{ margin: '0 auto 0.75rem' }} />
+              <div style={{ fontWeight: 600, fontSize: '1rem', color: bulkFile ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
+                {bulkFile ? bulkFile.name : 'Click or drop .xlsx / .csv spreadsheet here'}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
-                Supports Microsoft Excel (.xlsx, .xls) files up to 10MB
+                Supports Microsoft Excel (.xlsx, .xls) and CSV files up to 10MB
               </div>
               <input
                 id="excel-file-input"
                 type="file"
-                accept=".xlsx, .xls"
+                accept=".xlsx, .xls, .csv"
                 style={{ display: 'none' }}
                 onChange={(e) => setBulkFile(e.target.files[0])}
               />
@@ -510,14 +581,14 @@ export const ManageMarks = () => {
               }}
             >
               <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                📋 Dynamic Excel Column Headers:
+                📋 Required Column Format:
               </div>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                You must include a column named <code>Reg No</code>.
+                The first column must be <code>Reg No</code>. The second column <code>Student Name</code> is optional.
               </p>
               <p style={{ color: 'var(--text-secondary)' }}>
-                <strong>All other columns</strong> will automatically become assessment names!<br/>
-                <em>Example:</em> <code>Reg No</code> | <code>Unit Test 1</code> | <code>Midterm</code> | <code>Practical</code>
+                <strong>All other columns</strong> automatically become assessment names!<br />
+                <em>Example:</em> <code>Reg No</code> | <code>CIA-1</code> | <code>CIA-2</code> | <code>Model Exam</code>
               </p>
             </div>
 
@@ -536,15 +607,56 @@ export const ManageMarks = () => {
             <div
               style={{
                 marginTop: '1.5rem',
-                padding: '1rem 1.25rem',
                 borderRadius: 'var(--radius-md)',
-                background: 'rgba(16, 185, 129, 0.12)',
+                overflow: 'hidden',
                 border: '1px solid rgba(16, 185, 129, 0.3)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#34d399' }}>
-                <CheckCircle size={18} /> Processed {bulkResult.total_rows} rows — {bulkResult.saved} marks saved!
+              <div
+                style={{
+                  padding: '0.85rem 1.25rem',
+                  background: 'rgba(16, 185, 129, 0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontWeight: 600,
+                  color: '#34d399',
+                }}
+              >
+                <CheckCircle size={18} />
+                Processed {bulkResult.total_rows} rows — {bulkResult.saved} marks saved successfully!
+                {bulkResult.errors?.length > 0 && (
+                  <span style={{ marginLeft: '0.5rem', color: '#fb7185', fontWeight: 600 }}>
+                    • {bulkResult.errors.length} row(s) had errors
+                  </span>
+                )}
               </div>
+
+              {/* Error rows table */}
+              {bulkResult.errors && bulkResult.errors.length > 0 && (
+                <div style={{ padding: '0.75rem 1.25rem', background: 'rgba(244,63,94,0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, color: '#fb7185', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                    <AlertCircle size={16} />
+                    Invalid / Skipped Rows
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '4px 8px', color: 'var(--text-secondary)', fontWeight: 600 }}>Reg No</th>
+                        <th style={{ textAlign: 'left', padding: '4px 8px', color: 'var(--text-secondary)', fontWeight: 600 }}>Reason / Error</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkResult.errors.map((err, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid rgba(244,63,94,0.15)' }}>
+                          <td style={{ padding: '4px 8px', fontFamily: 'var(--font-mono)', color: '#f87171' }}>{err.reg_no || '—'}</td>
+                          <td style={{ padding: '4px 8px', color: 'var(--text-secondary)' }}>{err.reason || err.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>
