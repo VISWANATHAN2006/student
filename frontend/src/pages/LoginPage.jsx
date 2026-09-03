@@ -92,15 +92,6 @@ export const LoginPage = ({
             maxWidth: '460px',
           }}
         >
-          {/* Back button */}
-          <button
-            onClick={onNavigateBack}
-            className="btn-ghost btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}
-          >
-            <ChevronLeft size={16} /> Back to Home
-          </button>
-
         {/* Card */}
         <div className="card card-glow glass-panel" style={{ padding: '2.25rem' }}>
           {/* Header */}
@@ -130,7 +121,8 @@ export const LoginPage = ({
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '0.4rem',
-              background: 'rgba(0, 0, 0, 0.25)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
               padding: '0.35rem',
               borderRadius: 'var(--radius-md)',
               marginBottom: '1.5rem',

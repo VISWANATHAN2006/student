@@ -409,7 +409,8 @@ button {
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--primary-500);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-  background: #111a2f;
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .form-input::placeholder, .form-textarea::placeholder {
@@ -423,6 +424,52 @@ button {
 .form-select option {
   background: var(--bg-card);
   color: var(--text-primary);
+}
+
+/* Light Mode Input Enhancements */
+[data-theme='light'] .form-input,
+[data-theme='light'] .form-select,
+[data-theme='light'] .form-textarea {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme='light'] .form-input:focus,
+[data-theme='light'] .form-select:focus,
+[data-theme='light'] .form-textarea:focus {
+  background: #ffffff;
+  border-color: var(--primary-500);
+  color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+[data-theme='light'] .form-input::placeholder,
+[data-theme='light'] .form-textarea::placeholder {
+  color: #94a3b8;
+}
+
+[data-theme='light'] .form-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* Browser Autofill Styling */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-input) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+[data-theme='light'] input:-webkit-autofill,
+[data-theme='light'] input:-webkit-autofill:hover,
+[data-theme='light'] input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0f172a !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
 }
 
 .form-grid-2 {

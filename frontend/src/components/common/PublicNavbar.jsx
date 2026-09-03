@@ -189,17 +189,6 @@ export const PublicNavbar = ({
           >
             {theme === 'dark' ? <Sun size={17} color="#fbbf24" /> : <Moon size={17} color="#6366f1" />}
           </button>
-
-          {/* Right Action - Home button on subpages */}
-          {currentView !== 'landing' && (
-            <button
-              onClick={() => onNavigateHome && onNavigateHome()}
-              className="btn btn-secondary btn-sm"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <Home size={15} /> Home
-            </button>
-          )}
         </div>
       </header>
 
