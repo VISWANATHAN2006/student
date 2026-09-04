@@ -1,11 +1,7 @@
 import axios from 'axios';
 
-// Get custom API URL from localStorage or fallback to the live Render backend
+// Always use the live Render backend URL
 const getBaseURL = () => {
-  const saved = localStorage.getItem('biew_api_url');
-  if (saved) return saved;
-
-  // Render Live URL (Works everywhere: PC, Web, Android, physical phones)
   return 'https://student-blrk.onrender.com';
 };
 
