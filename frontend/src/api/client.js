@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Always use the live Render backend URL
 const getBaseURL = () => {
-  return 'https://student-blrh.onrender.com';
+  return 'https://student-b1rh.onrender.com';
 };
 
 export const apiClient = axios.create({
