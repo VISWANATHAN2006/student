@@ -161,12 +161,11 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
         className="page-content-scroll"
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          flexDirection: 'column',
           padding: '2.5rem 1.5rem',
         }}
       >
-        <div style={{ width: '100%', maxWidth: '600px' }}>
+        <div style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}>
         <div className="card card-glow glass-panel" style={{ padding: '2.25rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Create Account</h2>

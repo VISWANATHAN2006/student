@@ -83,8 +83,7 @@ export const LoginPage = ({
         className="page-content-scroll"
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          flexDirection: 'column',
           padding: '2rem 1.5rem',
           position: 'relative',
         }}
@@ -93,6 +92,7 @@ export const LoginPage = ({
           style={{
             width: '100%',
             maxWidth: '460px',
+            margin: 'auto',
           }}
         >
         {/* Card */}
