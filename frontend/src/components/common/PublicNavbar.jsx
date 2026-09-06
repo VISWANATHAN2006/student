@@ -78,26 +78,29 @@ export const PublicNavbar = ({
       >
         {/* Left: 3-line Hamburger Menu Button + Back Button + Logo + Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0 }}>
-          <button
-            className="btn-ghost hamburger-btn"
-            onClick={() => setIsDrawerOpen(true)}
-            aria-label="Open Navigation Menu"
-            title="Navigation Menu"
-            style={{
-              padding: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)',
-              background: 'rgba(255, 255, 255, 0.03)',
-              flexShrink: 0,
-            }}
-          >
-            <Menu size={22} />
-          </button>
+          {/* Hamburger Menu - only on landing page */}
+          {currentView === 'landing' && (
+            <button
+              className="btn-ghost hamburger-btn"
+              onClick={() => setIsDrawerOpen(true)}
+              aria-label="Open Navigation Menu"
+              title="Navigation Menu"
+              style={{
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                flexShrink: 0,
+              }}
+            >
+              <Menu size={22} />
+            </button>
+          )}
 
-          {/* Back button - only rendered on inner/subpages, hidden on the first page */}
+          {/* Back button - only rendered on inner/subpages */}
           {currentView !== 'landing' && (
             <button
               className="btn-ghost"
