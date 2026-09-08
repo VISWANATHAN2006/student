@@ -18,7 +18,8 @@ class MarkAttendanceRequest(BaseModel):
 class AttendanceResponse(BaseModel):
     id: int
     student_id: int
-    subject_id: Optional[int]
+    subject_id: Optional[int] = None
+    subject_name: Optional[str] = None
     date: date
     status: str
 

@@ -20,10 +20,14 @@ class Attendance(Base):
     subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=True)  # null = whole-day marking
     date = Column(Date, nullable=False)
     status = Column(Enum(AttendanceStatus), nullable=False)
-    marked_by_staff_id = Column(Integer, ForeignKey("staff.id"), nullable=False)
+    marked_by_staff_id = Column(Integer, ForeignKey("staff.id"), nullable=True)
 
     student = relationship("Student")
     subject = relationship("Subject")
+
+    @property
+    def subject_name(self) -> str | None:
+        return self.subject.name if self.subject else None
 
 
 class Marks(Base):

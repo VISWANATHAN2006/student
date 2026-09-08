@@ -1,12 +1,12 @@
 from datetime import date as date_type
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.core.deps import get_current_user, require_staff
+from app.core.deps import get_current_user, require_staff, require_student, require_staff_or_admin
 from app.models.academic_records import Attendance, AttendanceStatus
 from app.schemas.attendance import (
     MarkAttendanceRequest,
@@ -21,9 +21,10 @@ router = APIRouter()
 def mark_attendance(
     payload: MarkAttendanceRequest,
     db: Session = Depends(get_db),
-    current=Depends(require_staff),
+    current=Depends(require_staff_or_admin),
 ):
-    staff = current["user"]
+    current_user = current["user"]
+    staff_id = current_user.id if current["user_type"] == "staff" else None
     saved = 0
     for record in payload.records:
         if record.status not in ("present", "absent", "leave"):
@@ -44,6 +45,8 @@ def mark_attendance(
         )
         if existing:
             existing.status = AttendanceStatus(record.status)
+            if staff_id:
+                existing.marked_by_staff_id = staff_id
         else:
             db.add(
                 Attendance(
@@ -51,13 +54,54 @@ def mark_attendance(
                     subject_id=payload.subject_id,
                     date=payload.date,
                     status=AttendanceStatus(record.status),
-                    marked_by_staff_id=staff.id,
+                    marked_by_staff_id=staff_id,
                 )
             )
         saved += 1
 
     db.commit()
     return {"message": f"Attendance saved for {saved} students"}
+
+
+@router.get("/student/me", response_model=List[AttendanceResponse])
+def get_my_attendance(
+    month: int | None = None,
+    year: int | None = None,
+    db: Session = Depends(get_db),
+    current=Depends(require_student),
+):
+    student = current["user"]
+    query = db.query(Attendance).filter(Attendance.student_id == student.id)
+    if month is not None:
+        query = query.filter(extract("month", Attendance.date) == month)
+    if year is not None:
+        query = query.filter(extract("year", Attendance.date) == year)
+    return query.order_by(Attendance.date.desc()).all()
+
+
+@router.get("/student/me/summary", response_model=AttendanceSummaryResponse)
+def get_my_attendance_summary(
+    month: int | None = None,
+    year: int | None = None,
+    db: Session = Depends(get_db),
+    current=Depends(require_student),
+):
+    student = current["user"]
+    query = db.query(Attendance).filter(Attendance.student_id == student.id)
+    if month is not None:
+        query = query.filter(extract("month", Attendance.date) == month)
+    if year is not None:
+        query = query.filter(extract("year", Attendance.date) == year)
+    records = query.all()
+    total = len(records)
+    present = sum(1 for r in records if r.status == AttendanceStatus.present)
+    absent = sum(1 for r in records if r.status == AttendanceStatus.absent)
+    leave = sum(1 for r in records if r.status == AttendanceStatus.leave)
+    percentage = round((present / total) * 100, 2) if total > 0 else 0.0
+
+    return AttendanceSummaryResponse(
+        total_marked=total, present=present, absent=absent, leave=leave, percentage=percentage
+    )
 
 
 @router.get("/student/{student_id}", response_model=List[AttendanceResponse])
@@ -68,22 +112,42 @@ def get_student_attendance(
     db: Session = Depends(get_db),
     current=Depends(get_current_user),
 ):
-    query = db.query(Attendance).filter(Attendance.student_id == student_id)
-    if month and year:
-        query = query.filter(
-            extract("month", Attendance.date) == month,
-            extract("year", Attendance.date) == year,
+    # Security: A student can only view their own attendance records
+    if current["user_type"] == "student" and current["user"].id != student_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied: Students can only view their own attendance records",
         )
-    return query.order_by(Attendance.date).all()
+
+    query = db.query(Attendance).filter(Attendance.student_id == student_id)
+    if month is not None:
+        query = query.filter(extract("month", Attendance.date) == month)
+    if year is not None:
+        query = query.filter(extract("year", Attendance.date) == year)
+    return query.order_by(Attendance.date.desc()).all()
 
 
 @router.get("/student/{student_id}/summary", response_model=AttendanceSummaryResponse)
 def get_attendance_summary(
     student_id: int,
+    month: int | None = None,
+    year: int | None = None,
     db: Session = Depends(get_db),
     current=Depends(get_current_user),
 ):
-    records = db.query(Attendance).filter(Attendance.student_id == student_id).all()
+    # Security: A student can only view their own attendance summary
+    if current["user_type"] == "student" and current["user"].id != student_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied: Students can only view their own attendance summary",
+        )
+
+    query = db.query(Attendance).filter(Attendance.student_id == student_id)
+    if month is not None:
+        query = query.filter(extract("month", Attendance.date) == month)
+    if year is not None:
+        query = query.filter(extract("year", Attendance.date) == year)
+    records = query.all()
     total = len(records)
     present = sum(1 for r in records if r.status == AttendanceStatus.present)
     absent = sum(1 for r in records if r.status == AttendanceStatus.absent)
@@ -100,7 +164,7 @@ def get_class_low_attendance(
     class_id: int,
     threshold: float = 75.0,
     db: Session = Depends(get_db),
-    current=Depends(require_staff),
+    current=Depends(require_staff_or_admin),
 ):
     from app.models.student import Student
     students = db.query(Student).filter(Student.class_id == class_id).all()
@@ -128,11 +192,14 @@ def notify_low_attendance(
     threshold: float = 75.0,
     custom_message: str | None = None,
     db: Session = Depends(get_db),
-    current=Depends(require_staff),
+    current=Depends(require_staff_or_admin),
 ):
     from app.models.student import Student
     from app.models.notification import Notification, NotificationTarget
-    staff = current["user"]
+    user = current["user"]
+    staff_id = user.id if current["user_type"] == "staff" else None
+    admin_id = user.id if current["user_type"] == "admin" else None
+
     students = db.query(Student).filter(Student.class_id == class_id).all()
     low_students = []
     for s in students:
@@ -150,7 +217,8 @@ def notify_low_attendance(
             body=msg,
             target_type=NotificationTarget.class_,
             target_id=class_id,
-            created_by_staff_id=staff.id,
+            created_by_staff_id=staff_id,
+            created_by_admin_id=admin_id,
         )
         db.add(notif)
         db.commit()

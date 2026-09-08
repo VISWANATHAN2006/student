@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -25,6 +25,7 @@ class StudentOverviewItem(BaseModel):
     full_name: str
     reg_no: str
     class_name: str
+    class_id: Optional[int] = None
     email: str
 
     class Config:

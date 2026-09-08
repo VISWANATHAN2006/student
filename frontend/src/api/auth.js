@@ -30,4 +30,23 @@ export const authApi = {
     const response = await apiClient.get('/auth/check-email', { params: { email } });
     return response.data;
   },
+
+  // Forgot Password: payload { email, user_type? }
+  forgotPassword: async (payload) => {
+    const response = await apiClient.post('/auth/forgot-password', payload);
+    return response.data;
+  },
+
+  // Verify Reset OTP: payload { email, otp }
+  verifyResetOtp: async (payload) => {
+    const response = await apiClient.post('/auth/verify-reset-otp', payload);
+    return response.data;
+  },
+
+  // Reset Password: payload { email, otp, new_password }
+  resetPassword: async (payload) => {
+    const response = await apiClient.post('/auth/reset-password', payload);
+    return response.data;
+  },
 };
+

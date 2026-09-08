@@ -49,3 +49,26 @@ class TokenResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    user_type: Optional[str] = None  # optional: student, staff, admin
+
+
+class ForgotPasswordResponse(BaseModel):
+    message: str
+    email: str
+    user_type: str
+    otp_preview: Optional[str] = None
+
+
+class VerifyOtpRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str

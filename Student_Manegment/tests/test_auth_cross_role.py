@@ -6,7 +6,7 @@ from fastapi import HTTPException
 
 from app.database import Base
 from app.models.academic import ClassGroup
-from app.models.student import Student
+from app.models.student import Student, PreRegisteredStudent
 from app.models.staff import Staff, StaffRole
 from app.models.admin import Admin
 from app.schemas.auth import (
@@ -36,6 +36,7 @@ class TestCrossRoleEmailUniqueness(unittest.TestCase):
         self.db = self.Session()
         # Clean tables
         self.db.query(Student).delete()
+        self.db.query(PreRegisteredStudent).delete()
         self.db.query(Staff).delete()
         self.db.query(Admin).delete()
         self.db.query(ClassGroup).delete()
@@ -44,6 +45,10 @@ class TestCrossRoleEmailUniqueness(unittest.TestCase):
         # Seed sample class
         cg = ClassGroup(id=1, name="III BCA - A", department="Computer Applications")
         self.db.add(cg)
+
+        # Pre-register test students
+        for reg in ["REG001", "REG002", "REG123", "REG_DUP"]:
+            self.db.add(PreRegisteredStudent(reg_no=reg, full_name=f"Student {reg}", department="Computer Applications", class_id=1, added_by_staff_id=1))
         self.db.commit()
 
     def tearDown(self):

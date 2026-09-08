@@ -1,3 +1,6 @@
+import secrets
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -8,6 +11,7 @@ from app.models.student import Student
 from app.models.staff import Staff, StaffRole
 from app.models.admin import Admin
 from app.models.academic import ClassGroup
+from app.models.password_reset import PasswordResetOtp
 from app.schemas.auth import (
     StudentRegisterRequest,
     StaffRegisterRequest,
@@ -15,6 +19,10 @@ from app.schemas.auth import (
     LoginRequest,
     TokenResponse,
     MessageResponse,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    VerifyOtpRequest,
+    ResetPasswordRequest,
 )
 
 router = APIRouter()
@@ -207,3 +215,156 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         full_name=user.full_name,
         profile_picture_url=user.profile_picture_url,
     )
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Initiates password reset by sending/generating a 6-digit OTP code valid for 15 minutes.
+    """
+    email_clean = payload.email.strip().lower()
+
+    # Identify user role across all roles
+    role = get_existing_role_for_email(email_clean, db)
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email address."
+        )
+
+    if payload.user_type and payload.user_type.strip().lower() != role.lower():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"This email belongs to a {role} account, not {payload.user_type}."
+        )
+
+    # Invalidate previous unused OTPs for this email
+    db.query(PasswordResetOtp).filter(
+        func.lower(PasswordResetOtp.email) == email_clean,
+        PasswordResetOtp.used == False
+    ).update({"used": True})
+
+    # Generate 6-digit random code
+    otp = f"{secrets.randbelow(900000) + 100000}"
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+
+    reset_record = PasswordResetOtp(
+        email=email_clean,
+        user_type=role.lower(),
+        otp_code=otp,
+        expires_at=expires_at,
+        used=False
+    )
+    db.add(reset_record)
+    db.commit()
+
+    print(f"[AUTH] Password reset OTP generated for {email_clean} ({role}): {otp}")
+
+    return ForgotPasswordResponse(
+        message=f"A 6-digit password reset code has been sent for your {role} account.",
+        email=email_clean,
+        user_type=role.lower(),
+        otp_preview=otp
+    )
+
+
+@router.post("/verify-reset-otp", response_model=MessageResponse)
+def verify_reset_otp(payload: VerifyOtpRequest, db: Session = Depends(get_db)):
+    """
+    Validates that the OTP is correct and has not expired or been used.
+    """
+    email_clean = payload.email.strip().lower()
+    otp_clean = payload.otp.strip()
+
+    record = db.query(PasswordResetOtp).filter(
+        func.lower(PasswordResetOtp.email) == email_clean,
+        PasswordResetOtp.otp_code == otp_clean,
+        PasswordResetOtp.used == False
+    ).order_by(PasswordResetOtp.id.desc()).first()
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset code."
+        )
+
+    now = datetime.now(timezone.utc)
+    record_expires = record.expires_at
+    if record_expires.tzinfo is None:
+        record_expires = record_expires.replace(tzinfo=timezone.utc)
+
+    if record_expires < now:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset code has expired. Please request a new one."
+        )
+
+    return MessageResponse(message="Reset code is valid.")
+
+
+@router.post("/reset-password", response_model=MessageResponse)
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Resets the user's password after verifying the OTP code.
+    """
+    email_clean = payload.email.strip().lower()
+    otp_clean = payload.otp.strip()
+    new_password = payload.new_password.strip()
+
+    if len(new_password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 6 characters long."
+        )
+
+    record = db.query(PasswordResetOtp).filter(
+        func.lower(PasswordResetOtp.email) == email_clean,
+        PasswordResetOtp.otp_code == otp_clean,
+        PasswordResetOtp.used == False
+    ).order_by(PasswordResetOtp.id.desc()).first()
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset code."
+        )
+
+    now = datetime.now(timezone.utc)
+    record_expires = record.expires_at
+    if record_expires.tzinfo is None:
+        record_expires = record_expires.replace(tzinfo=timezone.utc)
+
+    if record_expires < now:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset code has expired. Please request a new one."
+        )
+
+    # Locate user in student, staff, or admin tables
+    role = record.user_type.lower()
+    user = None
+    if role == "student":
+        user = db.query(Student).filter(func.lower(Student.email) == email_clean).first()
+    elif role == "staff":
+        user = db.query(Staff).filter(func.lower(Staff.email) == email_clean).first()
+    elif role == "admin":
+        user = db.query(Admin).filter(func.lower(Admin.email) == email_clean).first()
+
+    if not user:
+        user = (
+            db.query(Student).filter(func.lower(Student.email) == email_clean).first() or
+            db.query(Staff).filter(func.lower(Staff.email) == email_clean).first() or
+            db.query(Admin).filter(func.lower(Admin.email) == email_clean).first()
+        )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User account could not be found."
+        )
+
+    user.password_hash = hash_password(new_password)
+    record.used = True
+    db.commit()
+
+    return MessageResponse(message="Password reset successfully! You can now sign in with your new password.")

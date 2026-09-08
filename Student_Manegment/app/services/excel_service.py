@@ -18,8 +18,15 @@ def process_bulk_marks_excel(
     max_marks_per_assessment: float,
     entered_by_staff_id: int,
     db: Session,
+    filename: str = "",
 ) -> Tuple[int, List[BulkUploadRowResult]]:
-    df = pd.read_excel(io.BytesIO(file_bytes))
+    if filename.lower().endswith(".csv"):
+        df = pd.read_csv(io.BytesIO(file_bytes))
+    else:
+        try:
+            df = pd.read_excel(io.BytesIO(file_bytes))
+        except Exception:
+            df = pd.read_csv(io.BytesIO(file_bytes))
 
     missing_cols = REQUIRED_COLUMNS - set(df.columns)
     if missing_cols:

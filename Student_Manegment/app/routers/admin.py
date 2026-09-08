@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.core.deps import require_admin
+from app.core.deps import require_admin, require_staff_or_admin
 from app.models.student import Student
 from app.models.staff import Staff, StaffClassAssignment
 from app.models.academic import ClassGroup, Subject
@@ -44,14 +44,22 @@ def list_all_staff(db: Session = Depends(get_db), current=Depends(require_admin)
 
 
 @router.get("/students", response_model=List[StudentOverviewItem])
-def list_all_students(db: Session = Depends(get_db), current=Depends(require_admin)):
-    students = db.query(Student).all()
+def list_all_students(
+    class_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current=Depends(require_staff_or_admin),
+):
+    query = db.query(Student)
+    if class_id is not None:
+        query = query.filter(Student.class_id == class_id)
+    students = query.all()
     return [
         StudentOverviewItem(
             id=s.id,
             full_name=s.full_name,
             reg_no=s.reg_no,
             class_name=s.class_group.name if s.class_group else "",
+            class_id=s.class_id,
             email=s.email,
         )
         for s in students

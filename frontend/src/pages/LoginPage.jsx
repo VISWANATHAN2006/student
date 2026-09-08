@@ -20,6 +20,7 @@ import {
 export const LoginPage = ({
   initialRole = 'student',
   onNavigateRegister,
+  onNavigateForgotPassword,
   onNavigateBack,
 }) => {
   const [role, setRole] = useState(initialRole);
@@ -264,6 +265,27 @@ export const LoginPage = ({
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.4rem', marginBottom: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => onNavigateForgotPassword && onNavigateForgotPassword(role)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary-400)',
+                  fontSize: '0.825rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '0.2rem 0',
+                  transition: 'color var(--transition-fast)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary-300)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--primary-400)')}
+              >
+                Forgot password?
+              </button>
             </div>
 
             <button

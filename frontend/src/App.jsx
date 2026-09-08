@@ -8,6 +8,7 @@ import { Loader } from './components/common/Loader';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 
 // Student Portal Pages
 import { StudentDashboard } from './pages/student/StudentDashboard';
@@ -85,10 +86,32 @@ export const App = () => {
             setInitialRole(role);
             setPublicView('register');
           }}
+          onNavigateForgotPassword={(role) => {
+            setInitialRole(role);
+            setPublicView('forgot-password');
+          }}
           onNavigateBack={() => setPublicView('landing')}
         />
       );
     }
+
+    if (publicView === 'forgot-password') {
+      return (
+        <ForgotPasswordPage
+          initialRole={initialRole}
+          onNavigateLogin={(role) => {
+            if (role) setInitialRole(role);
+            setPublicView('login');
+          }}
+          onNavigateRegister={(role) => {
+            if (role) setInitialRole(role);
+            setPublicView('register');
+          }}
+          onNavigateBack={() => setPublicView('login')}
+        />
+      );
+    }
+
 
     if (publicView === 'register') {
       return (

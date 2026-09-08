@@ -12,9 +12,10 @@ import {
   Clock,
   Filter,
   Calendar,
+  ArrowLeft,
 } from 'lucide-react';
 
-export const StudentAttendance = () => {
+export const StudentAttendance = ({ onBack }) => {
   const { user } = useAuth();
   const [summary, setSummary] = useState(null);
   const [records, setRecords] = useState([]);
@@ -26,13 +27,13 @@ export const StudentAttendance = () => {
     const fetchAttendance = async () => {
       setLoading(true);
       try {
-        const studentId = user?.id || 1;
+        const studentId = user?.id || 'me';
         const [sumRes, recRes] = await Promise.allSettled([
-          attendanceApi.getStudentAttendanceSummary(studentId),
+          attendanceApi.getStudentAttendanceSummary(studentId, month || null, year || null),
           attendanceApi.getStudentAttendance(studentId, month || null, year || null),
         ]);
 
-        if (sumRes.status === 'fulfilled') {
+        if (sumRes.status === 'fulfilled' && sumRes.value) {
           setSummary(sumRes.value);
         } else {
           setSummary({
@@ -44,11 +45,13 @@ export const StudentAttendance = () => {
           });
         }
 
-        if (recRes.status === 'fulfilled' && recRes.value) {
+        if (recRes.status === 'fulfilled' && Array.isArray(recRes.value)) {
           setRecords(recRes.value);
         } else {
           setRecords([]);
         }
+      } catch (e) {
+        setRecords([]);
       } finally {
         setLoading(false);
       }
@@ -60,14 +63,32 @@ export const StudentAttendance = () => {
   return (
     <div className="page-wrapper">
       <div className="page-header">
-        <div className="page-title-group">
-          <h1>
-            <CalendarCheck size={28} color="var(--primary-400)" />
-            My Attendance
-          </h1>
-          <p className="page-subtitle">
-            Track your daily attendance and monthly records
-          </p>
+        <div className="page-title-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {onBack && (
+            <button
+              className="btn btn-secondary"
+              onClick={onBack}
+              title="Go Back"
+              style={{
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 'var(--radius-md)',
+              }}
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+          <div>
+            <h1>
+              <CalendarCheck size={28} color="var(--primary-400)" />
+              My Attendance
+            </h1>
+            <p className="page-subtitle">
+              Track your daily attendance and monthly records
+            </p>
+          </div>
         </div>
 
         {/* Filter by Month / Year */}
@@ -111,9 +132,21 @@ export const StudentAttendance = () => {
         <StatCard
           title="Total Attendance"
           value={`${summary?.percentage ?? 0}%`}
-          subtext={summary?.percentage >= 75 ? 'Good (Above 75%)' : 'Low (Below 75%)'}
+          subtext={
+            summary?.total_marked > 0
+              ? summary?.percentage >= 75
+                ? 'Good (Above 75%)'
+                : 'Low (Below 75%)'
+              : 'No records marked yet'
+          }
           icon={CalendarCheck}
-          colorVariant={summary?.percentage >= 75 ? 'success' : 'danger'}
+          colorVariant={
+            summary?.total_marked > 0
+              ? summary?.percentage >= 75
+                ? 'success'
+                : 'danger'
+              : 'primary'
+          }
         />
 
         <StatCard
@@ -186,7 +219,9 @@ export const StudentAttendance = () => {
                     <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
                     <td style={{ fontWeight: 600 }}>{r.date}</td>
                     <td>
-                      {r.subject_id
+                      {r.subject_name
+                        ? `${r.subject_name} Session`
+                        : r.subject_id
                         ? `Subject Session (ID #${r.subject_id})`
                         : 'Full Day Class Attendance'}
                     </td>

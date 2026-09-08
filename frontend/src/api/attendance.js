@@ -9,17 +9,22 @@ export const attendanceApi = {
   },
 
   // Get student attendance history
-  getStudentAttendance: async (studentId, month = null, year = null) => {
+  getStudentAttendance: async (studentId = 'me', month = null, year = null) => {
     const params = {};
     if (month) params.month = month;
     if (year) params.year = year;
-    const response = await apiClient.get(`/attendance/student/${studentId}`, { params });
+    const url = !studentId || studentId === 'me' ? '/attendance/student/me' : `/attendance/student/${studentId}`;
+    const response = await apiClient.get(url, { params });
     return response.data;
   },
 
   // Get student attendance summary (% and stats)
-  getStudentAttendanceSummary: async (studentId) => {
-    const response = await apiClient.get(`/attendance/student/${studentId}/summary`);
+  getStudentAttendanceSummary: async (studentId = 'me', month = null, year = null) => {
+    const params = {};
+    if (month) params.month = month;
+    if (year) params.year = year;
+    const url = !studentId || studentId === 'me' ? '/attendance/student/me/summary' : `/attendance/student/${studentId}/summary`;
+    const response = await apiClient.get(url, { params });
     return response.data;
   },
 

@@ -13,9 +13,10 @@ export const adminApi = {
     return response.data;
   },
 
-  // List all students
-  getStudentList: async () => {
-    const response = await apiClient.get('/admin/students');
+  // List all students (with optional classId filter)
+  getStudentList: async (classId = null) => {
+    const params = classId ? { class_id: classId } : {};
+    const response = await apiClient.get('/admin/students', { params });
     return response.data;
   },
 

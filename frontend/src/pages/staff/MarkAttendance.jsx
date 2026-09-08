@@ -72,14 +72,19 @@ export const MarkAttendance = () => {
   // Fetch Students for the selected class
   useEffect(() => {
     const loadStudents = async () => {
+      if (!selectedClass) return;
       setLoadingStudents(true);
       try {
-        const data = await adminApi.getStudentList();
+        const classIdNum = parseInt(selectedClass, 10);
+        const data = await adminApi.getStudentList(classIdNum);
         if (Array.isArray(data) && data.length > 0) {
-          // If class_name matches or filter
-          setStudents(data);
+          // Filter to ensure only students belonging to the selected class are displayed
+          const classStudents = data.filter(
+            (s) => s.class_id === undefined || s.class_id === null || s.class_id === classIdNum
+          );
+          setStudents(classStudents);
           const initialMap = {};
-          data.forEach((s) => {
+          classStudents.forEach((s) => {
             initialMap[s.id] = 'present';
           });
           setAttendanceMap(initialMap);
@@ -138,6 +143,10 @@ export const MarkAttendance = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (students.length === 0) {
+      toast.error('No students in this class to mark attendance for.');
+      return;
+    }
     setSubmitting(true);
     try {
       const records = students.map((s) => ({
@@ -155,8 +164,8 @@ export const MarkAttendance = () => {
       await attendanceApi.markAttendance(payload);
       toast.success(`Attendance saved successfully for ${records.length} students on ${attendanceDate}!`);
     } catch (err) {
-      // Demo simulated success if offline
-      toast.success(`Attendance submitted successfully for ${students.length} students!`);
+      const detail = err.response?.data?.detail || err.message || 'Failed to submit attendance';
+      toast.error(detail);
     } finally {
       setSubmitting(false);
     }

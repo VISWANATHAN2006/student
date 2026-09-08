@@ -109,8 +109,8 @@ def bulk_upload_marks(
 ):
     staff = current["user"]
 
-    if not file.filename.endswith((".xlsx", ".xls")):
-        raise HTTPException(status_code=400, detail="Only .xlsx or .xls files are supported")
+    if not file.filename.lower().endswith((".xlsx", ".xls", ".csv")):
+        raise HTTPException(status_code=400, detail="Only .xlsx, .xls, or .csv files are supported")
 
     file_bytes = file.file.read()
 
@@ -122,6 +122,7 @@ def bulk_upload_marks(
             max_marks_per_assessment=max_marks_per_assessment,
             entered_by_staff_id=staff.id,
             db=db,
+            filename=file.filename,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
