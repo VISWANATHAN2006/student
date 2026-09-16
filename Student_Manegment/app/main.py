@@ -6,7 +6,7 @@ import os
 from app.database import Base, engine, SessionLocal
 from app.models.academic import ClassGroup, Subject
 
-from app.models import academic, student, staff, academic_records, files, notification, admin  # noqa: F401
+from app.models import academic, student, staff, academic_records, files, notification, admin, password_reset  # noqa: F401
 
 app = FastAPI(title="Student Management API", version="1.0.0")
 
