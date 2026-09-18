@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { filesApi } from '../../api/files';
 import { academicApi } from '../../api/academic';
+import { staffApi } from '../../api/staff';
 import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
 import { Loader } from '../../components/common/Loader';
@@ -12,12 +13,13 @@ import {
   Upload,
   CheckCircle,
   FileCheck,
+  AlertCircle,
 } from 'lucide-react';
 
 export const UploadMaterials = ({ defaultCategory = 'notes' }) => {
   const [category, setCategory] = useState(defaultCategory); // 'notes' | 'qb'
   const [subjects, setSubjects] = useState([]);
-  const [selectedSubject, setSelectedSubject] = useState('1');
+  const [selectedSubject, setSelectedSubject] = useState('');
   const [title, setTitle] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -28,26 +30,39 @@ export const UploadMaterials = ({ defaultCategory = 'notes' }) => {
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
+        // Priority 1: Fetch subjects assigned to this specific staff member
+        const assigned = await staffApi.getAssignedSubjects();
+        if (assigned && assigned.length > 0) {
+          const formatted = assigned.map((a) => ({
+            id: a.subject_id,
+            name: `${a.subject_name}${a.class_name ? ` — ${a.class_name}` : ''}`,
+          }));
+          setSubjects(formatted);
+          setSelectedSubject(String(formatted[0].id));
+          return;
+        }
+
+        // Fallback: If no subject assigned yet, fetch academic subjects
         const subs = await academicApi.getSubjects();
         if (subs && subs.length > 0) {
           setSubjects(subs);
           setSelectedSubject(String(subs[0].id));
         } else {
-          setSubjects([
-            { id: 1, name: 'Java Programming' },
-            { id: 2, name: 'Data Structures' },
-            { id: 3, name: 'Database Management Systems' },
-          ]);
+          setSubjects([]);
         }
       } catch (e) {
-        setSubjects([
-          { id: 1, name: 'Java Programming' },
-          { id: 2, name: 'Data Structures' },
-        ]);
+        try {
+          const subs = await academicApi.getSubjects();
+          setSubjects(subs || []);
+          if (subs && subs.length > 0) setSelectedSubject(String(subs[0].id));
+        } catch {
+          setSubjects([]);
+        }
       }
     };
     fetchSubjects();
   }, []);
+
 
   const handleUpload = async (e) => {
     e.preventDefault();

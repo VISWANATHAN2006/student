@@ -1,9 +1,10 @@
 import { apiClient } from './client';
 
 export const academicApi = {
-  // Get all classes
-  getClasses: async () => {
-    const response = await apiClient.get('/classes');
+  // Get all classes (optionally filtered by department)
+  getClasses: async (department = null) => {
+    const params = department ? { department } : {};
+    const response = await apiClient.get('/classes', { params });
     return response.data;
   },
 

@@ -7,9 +7,10 @@ export const marksApi = {
     return response.data;
   },
 
-  // Get marks for a student
-  getStudentMarks: async (studentId) => {
-    const response = await apiClient.get(`/marks/student/${studentId}`);
+  // Get marks for a student (defaults to logged-in student 'me')
+  getStudentMarks: async (studentId = 'me') => {
+    const endpoint = studentId === 'me' ? '/marks/student/me' : `/marks/student/${studentId}`;
+    const response = await apiClient.get(endpoint);
     return response.data;
   },
 
@@ -32,6 +33,12 @@ export const marksApi = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+
+  // In-page bulk save marks for class students
+  bulkSaveMarks: async (payload) => {
+    const response = await apiClient.post('/marks/bulk-save', payload);
     return response.data;
   },
 };

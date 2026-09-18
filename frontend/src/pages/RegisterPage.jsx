@@ -7,7 +7,6 @@ import {
   GraduationCap,
   Users,
   ShieldCheck,
-  ChevronLeft,
   User,
   Mail,
   Lock,
@@ -16,10 +15,13 @@ import {
   Hash,
   Eye,
   EyeOff,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react';
 
 export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavigateBack }) => {
-  const [role, setRole] = useState(initialRole);
+  // Primary roles requested: 'student' or 'staff' (with subtle 'admin' toggle)
+  const [role, setRole] = useState(initialRole === 'admin' ? 'admin' : (initialRole === 'staff' ? 'staff' : 'student'));
   const [classes, setClasses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -59,40 +61,55 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
     designation: 'Principal',
   });
 
-  // Fetch available classes for student registration dropdown
+  // Fetch available classes and departments
   useEffect(() => {
-    const fetchClasses = async () => {
+    const fetchData = async () => {
       try {
-        const list = await academicApi.getClasses();
-        if (list && list.length > 0) {
-          setClasses(list);
-          setStudentForm((prev) => ({ ...prev, class_id: String(list[0].id) }));
-        } else {
-          setStudentForm((prev) => ({ ...prev, class_id: '' }));
+        const [classList, deptList] = await Promise.allSettled([
+          academicApi.getClasses(),
+          academicApi.getDepartments(),
+        ]);
+
+        if (classList.status === 'fulfilled' && classList.value?.length > 0) {
+          setClasses(classList.value);
+          setStudentForm((prev) => ({ ...prev, class_id: String(classList.value[0].id) }));
+        }
+
+        if (deptList.status === 'fulfilled' && deptList.value?.length > 0) {
+          setDepartments(deptList.value);
         }
       } catch (err) {
-        console.error("Failed to fetch classes:", err);
-        setStudentForm((prev) => ({ ...prev, class_id: '' }));
+        console.error('Failed to fetch registration metadata:', err);
       }
     };
 
-    const fetchDepartments = async () => {
-      try {
-        const list = await academicApi.getDepartments();
-        if (list && list.length > 0) {
-          setDepartments(list);
-        }
-      } catch (err) {
-        console.error("Failed to fetch departments:", err);
-      }
-    };
-
-    fetchClasses();
-    fetchDepartments();
+    fetchData();
   }, []);
+
+  // Filter classes by selected student department
+  const filteredClasses = studentForm.department
+    ? classes.filter((c) => !c.department || c.department.toLowerCase() === studentForm.department.toLowerCase())
+    : classes;
+
+  const handleDepartmentChange = (deptName) => {
+    setStudentForm((prev) => {
+      const matchingClasses = classes.filter(
+        (c) => !c.department || c.department.toLowerCase() === deptName.toLowerCase()
+      );
+      return {
+        ...prev,
+        department: deptName,
+        class_id: matchingClasses.length > 0 ? String(matchingClasses[0].id) : prev.class_id,
+      };
+    });
+  };
 
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
+    if (!studentForm.class_id) {
+      toast.warning('Please select a valid Class / Section.');
+      return;
+    }
     setLoading(true);
     try {
       await authApi.registerStudent({
@@ -141,15 +158,18 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
   return (
     <div
       style={{
-        height: '100vh',
+        minHeight: '100vh',
+        width: '100%',
         background: 'var(--bg-main)',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden',
         position: 'relative',
+        overflowX: 'hidden',
+        overflowY: 'auto',
       }}
     >
       <div className="global-bg-watermark" />
+
       <PublicNavbar
         currentView="register"
         onNavigateHome={onNavigateBack}
@@ -157,500 +177,635 @@ export const RegisterPage = ({ initialRole = 'student', onNavigateLogin, onNavig
         onNavigateRegister={(r) => setRole(r)}
       />
 
+      {/* FULL PAGE SCROLLABLE CONTAINER */}
       <div
-        className="page-content-scroll"
         style={{
+          flex: 1,
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          padding: '2.5rem 1.5rem',
+          alignItems: 'center',
+          padding: '2rem 1.25rem 6rem 1.25rem',
         }}
       >
-        <div style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}>
-        <div className="card card-glow glass-panel" style={{ padding: '2.25rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Create Account</h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-              Choose your role and enter your details to sign up
-            </p>
-          </div>
+        <div style={{ width: '100%', maxWidth: '660px', margin: '0 auto' }}>
+          <div className="card card-glow glass-panel" style={{ padding: '2.25rem 2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
+                Create Your Account
+              </h2>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
+                Select your institutional role to load relevant registration details
+              </p>
+            </div>
 
-          {/* Role selector tabs */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '0.4rem',
-              background: 'var(--bg-input)',
-              border: '1px solid var(--border-color)',
-              padding: '0.35rem',
-              borderRadius: 'var(--radius-md)',
-              marginBottom: '1.75rem',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setRole('student')}
-              style={{
-                padding: '0.5rem',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-                background: role === 'student' ? 'var(--primary-600)' : 'transparent',
-                color: role === 'student' ? '#fff' : 'var(--text-secondary)',
-              }}
-            >
-              <GraduationCap size={15} /> Student
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('staff')}
-              style={{
-                padding: '0.5rem',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-                background: role === 'staff' ? 'var(--accent-cyan)' : 'transparent',
-                color: role === 'staff' ? '#fff' : 'var(--text-secondary)',
-              }}
-            >
-              <Users size={15} /> Staff
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('admin')}
-              style={{
-                padding: '0.5rem',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-                background: role === 'admin' ? 'var(--accent-rose)' : 'transparent',
-                color: role === 'admin' ? '#fff' : 'var(--text-secondary)',
-              }}
-            >
-              <ShieldCheck size={15} /> Admin
-            </button>
-          </div>
+            {/* PROMINENT USER ROLE SELECTION: STUDENT VS STAFF */}
+            <div style={{ marginBottom: '1.75rem' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  color: 'var(--text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: '0.75rem',
+                  textAlign: 'center',
+                }}
+              >
+                Select User Role *
+              </label>
 
-          {/* STUDENT FORM */}
-          {role === 'student' && (
-            <form onSubmit={handleStudentSubmit} autoComplete="off">
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">Full Name *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Enter full name"
-                    value={studentForm.full_name}
-                    onChange={(e) => setStudentForm({ ...studentForm, full_name: e.target.value })}
-                    autoComplete="off"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Class / Section *</label>
-                  <select
-                    className="form-select"
-                    value={studentForm.class_id}
-                    onChange={(e) => setStudentForm({ ...studentForm, class_id: e.target.value })}
-                    required
-                  >
-                    <option value="" disabled hidden>Select Class / Section</option>
-                    {classes.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} {c.department ? `(${c.department})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">Register Number *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Enter register number"
-                    value={studentForm.reg_no}
-                    onChange={(e) => setStudentForm({ ...studentForm, reg_no: e.target.value })}
-                    autoComplete="off"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Roll Number *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Enter roll number"
-                    value={studentForm.roll_no}
-                    onChange={(e) => setStudentForm({ ...studentForm, roll_no: e.target.value })}
-                    autoComplete="off"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">Department</label>
-                  <select
-                    className="form-select"
-                    value={studentForm.department}
-                    onChange={(e) => setStudentForm({ ...studentForm, department: e.target.value })}
-                  >
-                    <option value="" disabled hidden>Select Department</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.name}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Branch</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="BCA"
-                    value={studentForm.branch}
-                    onChange={(e) => setStudentForm({ ...studentForm, branch: e.target.value })}
-                    autoComplete="off"
-                  />
-                </div>
-              </div>
-
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">UMIS ID (Optional)</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Optional state UMIS ID"
-                    value={studentForm.umis_id}
-                    onChange={(e) => setStudentForm({ ...studentForm, umis_id: e.target.value })}
-                    autoComplete="off"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Date of Birth</label>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={studentForm.dob}
-                    onChange={(e) => setStudentForm({ ...studentForm, dob: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">Email Address *</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="student@biew.edu.in"
-                    value={studentForm.email}
-                    onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
-                    autoComplete="off"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Password *</label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showStudentPwd ? 'text' : 'password'}
-                      className="form-input"
-                      placeholder="••••••••"
-                      value={studentForm.password}
-                      onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })}
-                      autoComplete="new-password"
-                      style={{ paddingRight: '2.75rem' }}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowStudentPwd((v) => !v)}
-                      aria-label={showStudentPwd ? 'Hide password' : 'Show password'}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '1rem',
+                }}
+              >
+                {/* Student Role Card */}
+                <div
+                  id="role-select-student"
+                  onClick={() => setRole('student')}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '1.25rem 1rem',
+                    borderRadius: 'var(--radius-lg)',
+                    border: role === 'student' ? '2px solid var(--primary-500)' : '1px solid var(--border-color)',
+                    background: role === 'student' ? 'rgba(99, 102, 241, 0.14)' : 'var(--bg-card)',
+                    boxShadow: role === 'student' ? '0 0 24px rgba(99, 102, 241, 0.28)' : 'none',
+                    textAlign: 'center',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                  }}
+                >
+                  {role === 'student' && (
+                    <div
                       style={{
                         position: 'absolute',
-                        right: '0.75rem',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '0.1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: 'var(--text-muted)',
-                        transition: 'color 0.15s',
+                        top: '10px',
+                        right: '10px',
+                        color: 'var(--primary-400)',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                     >
-                      {showStudentPwd ? <EyeOff size={17} /> : <Eye size={17} />}
-                    </button>
+                      <CheckCircle2 size={18} />
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      background: role === 'student' ? 'var(--grad-primary)' : 'rgba(255,255,255,0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 0.75rem auto',
+                    }}
+                  >
+                    <GraduationCap size={26} color={role === 'student' ? '#fff' : 'var(--text-secondary)'} />
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '1.1rem',
+                      color: role === 'student' ? '#fff' : 'var(--text-primary)',
+                    }}
+                  >
+                    Student
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
+                    Access marks, attendance, notes &amp; academic portal
+                  </div>
+                </div>
+
+                {/* Staff Role Card */}
+                <div
+                  id="role-select-staff"
+                  onClick={() => setRole('staff')}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '1.25rem 1rem',
+                    borderRadius: 'var(--radius-lg)',
+                    border: role === 'staff' ? '2px solid var(--accent-cyan)' : '1px solid var(--border-color)',
+                    background: role === 'staff' ? 'rgba(6, 182, 212, 0.14)' : 'var(--bg-card)',
+                    boxShadow: role === 'staff' ? '0 0 24px rgba(6, 182, 212, 0.28)' : 'none',
+                    textAlign: 'center',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                  }}
+                >
+                  {role === 'staff' && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        color: 'var(--accent-cyan)',
+                      }}
+                    >
+                      <CheckCircle2 size={18} />
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      background: role === 'staff' ? 'var(--grad-accent)' : 'rgba(255,255,255,0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 0.75rem auto',
+                    }}
+                  >
+                    <Users size={26} color={role === 'staff' ? '#fff' : 'var(--text-secondary)'} />
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '1.1rem',
+                      color: role === 'staff' ? '#fff' : 'var(--text-primary)',
+                    }}
+                  >
+                    Staff
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
+                    Manage classes, student attendance, marks &amp; materials
                   </div>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: '1rem', padding: '0.8rem' }}
-                disabled={loading}
-              >
-                {loading ? 'Creating Student Account...' : 'Register Student Account'}
-              </button>
-            </form>
-          )}
-
-          {/* STAFF FORM */}
-          {role === 'staff' && (
-            <form onSubmit={handleStaffSubmit} autoComplete="off">
-              <div className="form-group">
-                <label className="form-label">Faculty Full Name *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Enter full name"
-                  value={staffForm.full_name}
-                  onChange={(e) => setStaffForm({ ...staffForm, full_name: e.target.value })}
-                  autoComplete="off"
-                  required
-                />
+              {/* Subtle Admin Link */}
+              <div style={{ textAlign: 'center', marginTop: '0.85rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setRole(role === 'admin' ? 'student' : 'admin')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: role === 'admin' ? 'var(--accent-rose)' : 'var(--text-muted)',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  <ShieldCheck size={14} />
+                  {role === 'admin' ? '← Switch to Student / Staff Registration' : 'Register as College Administrator'}
+                </button>
               </div>
+            </div>
 
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">Staff Role Type *</label>
-                  <select
-                    className="form-select"
-                    value={staffForm.role_type}
-                    onChange={(e) => setStaffForm({ ...staffForm, role_type: e.target.value })}
-                    required
+            {/* ROLE SPECIFIC FIELDS */}
+
+            {/* 1. STUDENT REGISTRATION FORM */}
+            {role === 'student' && (
+              <form onSubmit={handleStudentSubmit} autoComplete="off">
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Register Number *</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="e.g. 23BCA101"
+                        value={studentForm.reg_no}
+                        onChange={(e) => setStudentForm({ ...studentForm, reg_no: e.target.value })}
+                        autoComplete="off"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Full Name *</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter full name"
+                        value={studentForm.full_name}
+                        onChange={(e) => setStudentForm({ ...studentForm, full_name: e.target.value })}
+                        autoComplete="off"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Roll Number *</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="e.g. 101"
+                        value={studentForm.roll_no}
+                        onChange={(e) => setStudentForm({ ...studentForm, roll_no: e.target.value })}
+                        autoComplete="off"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Department *</label>
+                      <select
+                        className="form-select"
+                        value={studentForm.department}
+                        onChange={(e) => handleDepartmentChange(e.target.value)}
+                        required
+                      >
+                        <option value="" disabled hidden>
+                          Select Department
+                        </option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.name}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Class / Section *</label>
+                      <select
+                        className="form-select"
+                        value={studentForm.class_id}
+                        onChange={(e) => setStudentForm({ ...studentForm, class_id: e.target.value })}
+                        required
+                      >
+                        <option value="" disabled hidden>
+                          Select Class Group
+                        </option>
+                        {filteredClasses.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} {c.department ? `(${c.department})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Branch</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="BCA / CSE"
+                        value={studentForm.branch}
+                        onChange={(e) => setStudentForm({ ...studentForm, branch: e.target.value })}
+                        autoComplete="off"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">UMIS ID (Optional)</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="State Higher Ed UMIS ID"
+                        value={studentForm.umis_id}
+                        onChange={(e) => setStudentForm({ ...studentForm, umis_id: e.target.value })}
+                        autoComplete="off"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Date of Birth</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        value={studentForm.dob}
+                        onChange={(e) => setStudentForm({ ...studentForm, dob: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Email Address *</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="student@biew.edu.in"
+                        value={studentForm.email}
+                        onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
+                        autoComplete="off"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Password *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showStudentPwd ? 'text' : 'password'}
+                          className="form-input"
+                          placeholder="••••••••"
+                          value={studentForm.password}
+                          onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })}
+                          autoComplete="new-password"
+                          style={{ paddingRight: '2.75rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowStudentPwd((v) => !v)}
+                          aria-label={showStudentPwd ? 'Hide password' : 'Show password'}
+                          style={{
+                            position: 'absolute',
+                            right: '0.75rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '0.1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'var(--text-muted)',
+                            transition: 'color 0.15s',
+                          }}
+                        >
+                          {showStudentPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%',
+                      marginTop: '1.5rem',
+                      padding: '0.85rem',
+                      fontSize: '0.95rem',
+                      fontWeight: 700,
+                    }}
+                    disabled={loading}
                   >
-                    <option value="both">Class Advisor &amp; Subject Teacher (Both)</option>
-                    <option value="advisor">Class Advisor Only</option>
-                    <option value="subject">Subject Teacher Only</option>
-                  </select>
+                    {loading ? 'Creating Student Account...' : 'Complete Student Registration'}
+                  </button>
                 </div>
+              </form>
+            )}
 
-                <div className="form-group">
-                  <label className="form-label">Department</label>
-                  <select
-                    className="form-select"
-                    value={staffForm.department}
-                    onChange={(e) => setStaffForm({ ...staffForm, department: e.target.value })}
-                  >
-                    <option value="" disabled hidden>Select Department</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.name}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">Email Address *</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="faculty@biew.edu.in"
-                    value={staffForm.email}
-                    onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
-                    autoComplete="off"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Password *</label>
-                  <div style={{ position: 'relative' }}>
+            {/* 2. STAFF REGISTRATION FORM */}
+            {role === 'staff' && (
+              <form onSubmit={handleStaffSubmit} autoComplete="off">
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Faculty Full Name *</label>
                     <input
-                      type={showStaffPwd ? 'text' : 'password'}
+                      type="text"
                       className="form-input"
-                      placeholder="••••••••"
-                      value={staffForm.password}
-                      onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
-                      autoComplete="new-password"
-                      style={{ paddingRight: '2.75rem' }}
+                      placeholder="e.g. Dr. K. Ramesh"
+                      value={staffForm.full_name}
+                      onChange={(e) => setStaffForm({ ...staffForm, full_name: e.target.value })}
+                      autoComplete="off"
                       required
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowStaffPwd((v) => !v)}
-                      aria-label={showStaffPwd ? 'Hide password' : 'Show password'}
-                      style={{
-                        position: 'absolute',
-                        right: '0.75rem',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '0.1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: 'var(--text-muted)',
-                        transition: 'color 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-                    >
-                      {showStaffPwd ? <EyeOff size={17} /> : <Eye size={17} />}
-                    </button>
                   </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Department *</label>
+                      <select
+                        className="form-select"
+                        value={staffForm.department}
+                        onChange={(e) => setStaffForm({ ...staffForm, department: e.target.value })}
+                        required
+                      >
+                        <option value="" disabled hidden>
+                          Select Department
+                        </option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.name}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Staff Role Type *</label>
+                      <select
+                        className="form-select"
+                        value={staffForm.role_type}
+                        onChange={(e) => setStaffForm({ ...staffForm, role_type: e.target.value })}
+                        required
+                      >
+                        <option value="both">Class Advisor &amp; Subject Teacher (Both)</option>
+                        <option value="advisor">Class Advisor Only</option>
+                        <option value="subject">Subject Teacher Only</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Staff Email Address *</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="faculty@biew.edu.in"
+                        value={staffForm.email}
+                        onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
+                        autoComplete="off"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Password *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showStaffPwd ? 'text' : 'password'}
+                          className="form-input"
+                          placeholder="••••••••"
+                          value={staffForm.password}
+                          onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+                          autoComplete="new-password"
+                          style={{ paddingRight: '2.75rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowStaffPwd((v) => !v)}
+                          aria-label={showStaffPwd ? 'Hide password' : 'Show password'}
+                          style={{
+                            position: 'absolute',
+                            right: '0.75rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '0.1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'var(--text-muted)',
+                            transition: 'color 0.15s',
+                          }}
+                        >
+                          {showStaffPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%',
+                      marginTop: '1.5rem',
+                      padding: '0.85rem',
+                      background: 'var(--grad-accent)',
+                      fontSize: '0.95rem',
+                      fontWeight: 700,
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Creating Staff Account...' : 'Complete Staff Registration'}
+                  </button>
                 </div>
-              </div>
+              </form>
+            )}
 
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: '1rem', padding: '0.8rem', background: 'var(--grad-accent)' }}
-                disabled={loading}
-              >
-                {loading ? 'Creating Staff Account...' : 'Register Staff Account'}
-              </button>
-            </form>
-          )}
-
-          {/* ADMIN FORM */}
-          {role === 'admin' && (
-            <form onSubmit={handleAdminSubmit} autoComplete="off">
-              <div className="form-group">
-                <label className="form-label">Admin / Principal Name *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Enter full name"
-                  value={adminForm.full_name}
-                  onChange={(e) => setAdminForm({ ...adminForm, full_name: e.target.value })}
-                  autoComplete="off"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Designation</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Enter designation"
-                  value={adminForm.designation}
-                  onChange={(e) => setAdminForm({ ...adminForm, designation: e.target.value })}
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label">Email Address *</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="principal@biew.edu.in"
-                    value={adminForm.email}
-                    onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
-                    autoComplete="off"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Password *</label>
-                  <div style={{ position: 'relative' }}>
+            {/* 3. ADMIN REGISTRATION FORM */}
+            {role === 'admin' && (
+              <form onSubmit={handleAdminSubmit} autoComplete="off">
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Admin / Principal Name *</label>
                     <input
-                      type={showAdminPwd ? 'text' : 'password'}
+                      type="text"
                       className="form-input"
-                      placeholder="••••••••"
-                      value={adminForm.password}
-                      onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
-                      autoComplete="new-password"
-                      style={{ paddingRight: '2.75rem' }}
+                      placeholder="Enter full name"
+                      value={adminForm.full_name}
+                      onChange={(e) => setAdminForm({ ...adminForm, full_name: e.target.value })}
+                      autoComplete="off"
                       required
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowAdminPwd((v) => !v)}
-                      aria-label={showAdminPwd ? 'Hide password' : 'Show password'}
-                      style={{
-                        position: 'absolute',
-                        right: '0.75rem',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '0.1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: 'var(--text-muted)',
-                        transition: 'color 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-                    >
-                      {showAdminPwd ? <EyeOff size={17} /> : <Eye size={17} />}
-                    </button>
                   </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Designation</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Principal / Dean / Administrator"
+                      value={adminForm.designation}
+                      onChange={(e) => setAdminForm({ ...adminForm, designation: e.target.value })}
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Email Address *</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="principal@biew.edu.in"
+                        value={adminForm.email}
+                        onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
+                        autoComplete="off"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Password *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showAdminPwd ? 'text' : 'password'}
+                          className="form-input"
+                          placeholder="••••••••"
+                          value={adminForm.password}
+                          onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                          autoComplete="new-password"
+                          style={{ paddingRight: '2.75rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowAdminPwd((v) => !v)}
+                          aria-label={showAdminPwd ? 'Hide password' : 'Show password'}
+                          style={{
+                            position: 'absolute',
+                            right: '0.75rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '0.1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'var(--text-muted)',
+                            transition: 'color 0.15s',
+                          }}
+                        >
+                          {showAdminPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%',
+                      marginTop: '1.5rem',
+                      padding: '0.85rem',
+                      background: 'var(--grad-danger)',
+                      fontSize: '0.95rem',
+                      fontWeight: 700,
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Creating Admin Account...' : 'Complete Admin Registration'}
+                  </button>
                 </div>
-              </div>
+              </form>
+            )}
 
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: '1rem', padding: '0.8rem', background: 'var(--grad-danger)' }}
-                disabled={loading}
-              >
-                {loading ? 'Creating Admin Account...' : 'Register Admin Account'}
-              </button>
-            </form>
-          )}
-
-          <div
-            style={{
-              marginTop: '1.5rem',
-              textAlign: 'center',
-              fontSize: '0.875rem',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            Already have an account?{' '}
-            <button
-              onClick={() => onNavigateLogin(role)}
+            {/* Footer Navigation */}
+            <div
               style={{
-                color: 'var(--primary-400)',
-                fontWeight: 600,
-                textDecoration: 'underline',
-                cursor: 'pointer',
+                marginTop: '1.75rem',
+                textAlign: 'center',
+                fontSize: '0.9rem',
+                color: 'var(--text-secondary)',
               }}
             >
-              Sign in
-            </button>
+              Already registered on the portal?{' '}
+              <button
+                type="button"
+                onClick={() => onNavigateLogin(role === 'admin' ? 'admin' : (role === 'staff' ? 'staff' : 'student'))}
+                style={{
+                  color: 'var(--primary-400)',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                }}
+              >
+                Sign In here
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
   );
 };

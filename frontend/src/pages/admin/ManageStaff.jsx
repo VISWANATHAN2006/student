@@ -21,6 +21,7 @@ export const ManageStaff = () => {
   const [staffList, setStaffList] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [staffAssignments, setStaffAssignments] = useState({});
   const [loading, setLoading] = useState(true);
 
   // Modal states
@@ -48,6 +49,17 @@ export const ManageStaff = () => {
           const firstStaffId = String(staffRes.value[0].id);
           setAdvisorForm((prev) => ({ ...prev, staff_id: firstStaffId }));
           setSubjectForm((prev) => ({ ...prev, staff_id: firstStaffId }));
+
+          // Fetch assigned subjects for all staff
+          const assignmentPromises = staffRes.value.map((s) =>
+            staffApi.getStaffAssignedSubjects(s.id).then((res) => ({ staffId: s.id, list: res })).catch(() => ({ staffId: s.id, list: [] }))
+          );
+          const assignmentResults = await Promise.all(assignmentPromises);
+          const assignMap = {};
+          assignmentResults.forEach((r) => {
+            assignMap[r.staffId] = r.list;
+          });
+          setStaffAssignments(assignMap);
         }
       } else {
         setStaffList([]);
@@ -100,11 +112,21 @@ export const ManageStaff = () => {
         subject_id: parseInt(subjectForm.subject_id, 10),
         class_id: parseInt(subjectForm.class_id, 10),
       });
-      toast.success('Subject Teacher assigned successfully!');
+      toast.success('Subject assigned to faculty member successfully!');
       setShowSubjectModal(false);
+      fetchStaffData();
     } catch (err) {
-      toast.success('Subject Teacher assigned successfully! (Demo simulated)');
-      setShowSubjectModal(false);
+      toast.error(err?.response?.data?.detail || 'Failed to assign subject');
+    }
+  };
+
+  const handleUnassignSubject = async (assignmentId) => {
+    try {
+      await staffApi.unassignSubject(assignmentId);
+      toast.success('Subject unassigned successfully!');
+      fetchStaffData();
+    } catch (err) {
+      toast.error('Failed to unassign subject');
     }
   };
 
@@ -164,40 +186,99 @@ export const ManageStaff = () => {
                   <th>Email</th>
                   <th>Department</th>
                   <th>Designated Role</th>
-                  <th>Status</th>
+                  <th>Assigned Subjects</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {staffList.map((s, idx) => (
-                  <tr key={s.id || idx}>
-                    <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {s.full_name}
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{s.email}</td>
-                    <td>{s.department || '—'}</td>
-                    <td>
-                      <Badge
-                        variant={
-                          s.role_type === 'both'
-                            ? 'primary'
-                            : s.role_type === 'advisor'
-                            ? 'cyan'
-                            : 'warning'
-                        }
-                      >
-                        {s.role_type?.toUpperCase()}
-                      </Badge>
-                    </td>
-                    <td>
-                      <Badge variant="success">Active Faculty</Badge>
-                    </td>
-                  </tr>
-                ))}
+                {staffList.map((s, idx) => {
+                  const mySubs = staffAssignments[s.id] || [];
+                  return (
+                    <tr key={s.id || idx}>
+                      <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {s.full_name}
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)' }}>{s.email}</td>
+                      <td>{s.department || '—'}</td>
+                      <td>
+                        <Badge
+                          variant={
+                            s.role_type === 'both'
+                              ? 'primary'
+                              : s.role_type === 'advisor'
+                              ? 'cyan'
+                              : 'warning'
+                          }
+                        >
+                          {s.role_type?.toUpperCase()}
+                        </Badge>
+                      </td>
+                      <td>
+                        {mySubs.length > 0 ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                            {mySubs.map((sub) => (
+                              <span
+                                key={sub.id}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                  background: 'rgba(99, 102, 241, 0.12)',
+                                  color: 'var(--primary-300)',
+                                  border: '1px solid rgba(99, 102, 241, 0.25)',
+                                  borderRadius: 'var(--radius-sm)',
+                                  padding: '0.15rem 0.45rem',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {sub.subject_name} ({sub.class_name})
+                                <button
+                                  type="button"
+                                  onClick={() => handleUnassignSubject(sub.id)}
+                                  title="Unassign Subject"
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--accent-rose)',
+                                    cursor: 'pointer',
+                                    padding: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    fontSize: '0.7rem',
+                                  }}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>None assigned</span>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => {
+                            setSubjectForm((prev) => ({ ...prev, staff_id: String(s.id) }));
+                            setShowSubjectModal(true);
+                          }}
+                          style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                        >
+                          + Assign Subject
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
+
       </div>
 
       {/* ASSIGN ADVISOR MODAL */}

@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -49,6 +50,18 @@ def add_marks(
     db.commit()
     db.refresh(marks)
     return marks
+
+
+@router.get("/student/me", response_model=List[MarksResponse])
+def get_my_marks(
+    db: Session = Depends(get_db),
+    current=Depends(get_current_user),
+):
+    """Strictly returns marks for the authenticated student only."""
+    if current["user_type"] != "student":
+        raise HTTPException(status_code=400, detail="Only students can access this endpoint")
+    student = current["user"]
+    return db.query(Marks).filter(Marks.student_id == student.id).all()
 
 
 @router.get("/student/{student_id}", response_model=List[MarksResponse])
@@ -122,10 +135,68 @@ def bulk_upload_marks(
             max_marks_per_assessment=max_marks_per_assessment,
             entered_by_staff_id=staff.id,
             db=db,
-            filename=file.filename,
+            filename=file.filename or "upload.xlsx",
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     errors = [r for r in results if r.status == "error"]
-    return BulkUploadResponse(total_rows=len(results) + 0, saved=saved, errors=errors)
+    return BulkUploadResponse(total_rows=len(results), saved=saved, errors=errors)
+
+
+
+class BatchMarkItem(BaseModel):
+    student_id: int
+    marks_obtained: float
+
+
+class BulkSaveMarksRequest(BaseModel):
+    subject_id: int
+    class_id: int
+    assessment_type: str
+    max_marks: float
+    entries: List[BatchMarkItem]
+
+
+@router.post("/bulk-save")
+def bulk_save_marks(
+    payload: BulkSaveMarksRequest,
+    db: Session = Depends(get_db),
+    current=Depends(require_staff),
+):
+    """Fast in-page bulk marks submission for an entire class."""
+    staff = current["user"]
+    updated = 0
+    created = 0
+
+    for item in payload.entries:
+        if item.marks_obtained < 0 or item.marks_obtained > payload.max_marks:
+            continue
+        existing = (
+            db.query(Marks)
+            .filter(
+                Marks.student_id == item.student_id,
+                Marks.subject_id == payload.subject_id,
+                Marks.assessment_type == payload.assessment_type,
+            )
+            .first()
+        )
+        if existing:
+            existing.marks_obtained = item.marks_obtained
+            existing.max_marks = payload.max_marks
+            existing.entered_by_staff_id = staff.id
+            updated += 1
+        else:
+            new_mark = Marks(
+                student_id=item.student_id,
+                subject_id=payload.subject_id,
+                assessment_type=payload.assessment_type,
+                marks_obtained=item.marks_obtained,
+                max_marks=payload.max_marks,
+                entered_by_staff_id=staff.id,
+            )
+            db.add(new_mark)
+            created += 1
+
+    db.commit()
+    return {"message": f"Bulk marks saved successfully: {created} added, {updated} updated."}

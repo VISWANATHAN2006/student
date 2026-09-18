@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -23,6 +24,84 @@ class AssignSubjectRequest(BaseModel):
     staff_id: int
     subject_id: int
     class_id: int
+
+
+class AssignedSubjectItem(BaseModel):
+    id: int
+    subject_id: int
+    subject_name: str
+    class_id: int
+    class_name: str
+    department: Optional[str] = None
+
+
+@router.get("/me/assigned-subjects", response_model=List[AssignedSubjectItem])
+def get_my_assigned_subjects(
+    db: Session = Depends(get_db),
+    current=Depends(require_staff),
+):
+    """Returns the subjects assigned to the logged-in staff member."""
+    staff: Staff = current["user"]
+    assignments = (
+        db.query(StaffSubjectAssignment)
+        .filter(StaffSubjectAssignment.staff_id == staff.id)
+        .all()
+    )
+    results = []
+    for a in assignments:
+        results.append(
+            AssignedSubjectItem(
+                id=a.id,
+                subject_id=a.subject_id,
+                subject_name=a.subject.name if a.subject else f"Subject #{a.subject_id}",
+                class_id=a.class_id,
+                class_name=a.class_group.name if a.class_group else f"Class #{a.class_id}",
+                department=a.class_group.department if a.class_group else None,
+            )
+        )
+    return results
+
+
+@router.get("/{staff_id}/assigned-subjects", response_model=List[AssignedSubjectItem])
+def get_staff_assigned_subjects(
+    staff_id: int,
+    db: Session = Depends(get_db),
+    current=Depends(require_admin),
+):
+    """Admin endpoint to list all assigned subjects for a specific staff member."""
+    assignments = (
+        db.query(StaffSubjectAssignment)
+        .filter(StaffSubjectAssignment.staff_id == staff_id)
+        .all()
+    )
+    results = []
+    for a in assignments:
+        results.append(
+            AssignedSubjectItem(
+                id=a.id,
+                subject_id=a.subject_id,
+                subject_name=a.subject.name if a.subject else f"Subject #{a.subject_id}",
+                class_id=a.class_id,
+                class_name=a.class_group.name if a.class_group else f"Class #{a.class_id}",
+                department=a.class_group.department if a.class_group else None,
+            )
+        )
+    return results
+
+
+@router.delete("/unassign-subject/{assignment_id}")
+def unassign_subject(
+    assignment_id: int,
+    db: Session = Depends(get_db),
+    current=Depends(require_admin),
+):
+    """Admin endpoint to unassign a subject from staff."""
+    assignment = db.query(StaffSubjectAssignment).filter(StaffSubjectAssignment.id == assignment_id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    db.delete(assignment)
+    db.commit()
+    return {"message": "Subject unassigned successfully"}
 
 
 @router.post("/assign-class")
@@ -143,7 +222,15 @@ def bulk_pre_register_students(
 
 @router.get("/pre-register", response_model=List[PreRegStudentResponse])
 def get_pre_registered_students(
+    class_id: Optional[int] = None,
+    department: Optional[str] = None,
     db: Session = Depends(get_db),
     current=Depends(require_staff)
 ):
-    return db.query(PreRegisteredStudent).all()
+    query = db.query(PreRegisteredStudent)
+    if class_id is not None:
+        query = query.filter(PreRegisteredStudent.class_id == class_id)
+    if department:
+        query = query.filter(func.lower(PreRegisteredStudent.department) == department.strip().lower())
+    return query.all()
+

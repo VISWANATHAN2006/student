@@ -466,7 +466,7 @@ export const StudentMarks = () => {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const studentId = user?.id || 1;
+        const studentId = user?.id || 'me';
         const [marksRes, subsRes, attRes] = await Promise.allSettled([
           marksApi.getStudentMarks(studentId),
           academicApi.getSubjects(),

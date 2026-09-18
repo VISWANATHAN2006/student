@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { marksApi } from '../../api/marks';
 import { academicApi } from '../../api/academic';
 import { adminApi } from '../../api/admin';
+import { staffApi } from '../../api/staff';
 import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
 import { Loader } from '../../components/common/Loader';
@@ -18,16 +19,24 @@ import {
   CheckCircle,
   Download,
   AlertCircle,
+  Save,
+  Users,
 } from 'lucide-react';
 
 export const ManageMarks = () => {
-  const [activeTab, setActiveTab] = useState('sheet'); // 'sheet' | 'single' | 'bulk'
+  const [activeTab, setActiveTab] = useState('sheet'); // 'sheet' | 'bulk-entry' | 'bulk-excel' | 'single'
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [students, setStudents] = useState([]);
 
   const [selectedClass, setSelectedClass] = useState('1');
   const [selectedSubject, setSelectedSubject] = useState('1');
+
+  // In-Page Bulk Entry State
+  const [bulkAssessmentType, setBulkAssessmentType] = useState('CIA-1');
+  const [bulkEntryMaxMarks, setBulkEntryMaxMarks] = useState(20);
+  const [bulkStudentScores, setBulkStudentScores] = useState({}); // { [studentId]: score }
+  const [savingBulkEntries, setSavingBulkEntries] = useState(false);
 
   // Single Mark Form State
   const [singleForm, setSingleForm] = useState({
@@ -50,11 +59,23 @@ export const ManageMarks = () => {
 
   const toast = useToast();
 
-  // Load Classes and Subjects
+  // Filter students by selected class
+  const classStudents = students.filter(
+    (s) => !selectedClass || String(s.class_id) === String(selectedClass)
+  );
+
+  // Load Classes and Assigned Subjects
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [classList, subjectList, studentList] = await Promise.allSettled([
+        let assignedSubs = [];
+        try {
+          assignedSubs = await staffApi.getAssignedSubjects();
+        } catch (e) {
+          assignedSubs = [];
+        }
+
+        const [classList, allSubjectList, studentList] = await Promise.allSettled([
           academicApi.getClasses(),
           academicApi.getSubjects(),
           adminApi.getStudentList(),
@@ -70,10 +91,15 @@ export const ManageMarks = () => {
           ]);
         }
 
-        if (subjectList.status === 'fulfilled' && subjectList.value?.length > 0) {
-          setSubjects(subjectList.value);
-          setSelectedSubject(String(subjectList.value[0].id));
-          setSingleForm((prev) => ({ ...prev, subject_id: String(subjectList.value[0].id) }));
+        // Prioritize staff assigned subjects; fallback to all subjects if none explicitly assigned
+        const effectiveSubjects = (assignedSubs && assignedSubs.length > 0)
+          ? assignedSubs
+          : (allSubjectList.status === 'fulfilled' && allSubjectList.value?.length > 0 ? allSubjectList.value : []);
+
+        if (effectiveSubjects.length > 0) {
+          setSubjects(effectiveSubjects);
+          setSelectedSubject(String(effectiveSubjects[0].id));
+          setSingleForm((prev) => ({ ...prev, subject_id: String(effectiveSubjects[0].id) }));
         } else {
           setSubjects([]);
         }
@@ -95,6 +121,7 @@ export const ManageMarks = () => {
 
   // Fetch Class Sheet Matrix
   const loadSheet = async () => {
+    if (!selectedClass || !selectedSubject) return;
     setLoadingSheet(true);
     try {
       const data = await marksApi.getClassMarksSheet(
@@ -115,6 +142,49 @@ export const ManageMarks = () => {
       loadSheet();
     }
   }, [selectedClass, selectedSubject, activeTab]);
+
+  // Handle in-page bulk marks submission
+  const handleBulkEntrySubmit = async (e) => {
+    e.preventDefault();
+    const currentStudents = classStudents.length > 0 ? classStudents : students;
+    const entries = [];
+    const maxM = parseFloat(bulkEntryMaxMarks);
+
+    currentStudents.forEach((st) => {
+      const val = bulkStudentScores[st.id];
+      if (val !== undefined && val !== '' && !isNaN(val)) {
+        const mark = parseFloat(val);
+        if (mark >= 0 && mark <= maxM) {
+          entries.push({
+            student_id: st.id,
+            marks_obtained: mark,
+          });
+        }
+      }
+    });
+
+    if (entries.length === 0) {
+      toast.warning('Please enter marks for at least one student before saving.');
+      return;
+    }
+
+    setSavingBulkEntries(true);
+    try {
+      const res = await marksApi.bulkSaveMarks({
+        subject_id: parseInt(selectedSubject, 10),
+        class_id: parseInt(selectedClass, 10),
+        assessment_type: bulkAssessmentType,
+        max_marks: maxM,
+        entries,
+      });
+      toast.success(res.message || `Saved marks for ${entries.length} students!`);
+      loadSheet();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || 'Failed to bulk save marks.');
+    } finally {
+      setSavingBulkEntries(false);
+    }
+  };
 
   // Submit Single Mark
   const handleSingleSubmit = async (e) => {
@@ -222,6 +292,7 @@ export const ManageMarks = () => {
         <div
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-md)',
@@ -241,13 +312,15 @@ export const ManageMarks = () => {
               gap: '0.35rem',
               background: activeTab === 'sheet' ? 'var(--grad-primary)' : 'transparent',
               color: activeTab === 'sheet' ? '#fff' : 'var(--text-secondary)',
+              border: 'none',
+              cursor: 'pointer',
             }}
           >
             <Table size={16} /> Class Marks Sheet
           </button>
 
           <button
-            onClick={() => setActiveTab('single')}
+            onClick={() => setActiveTab('bulk-entry')}
             style={{
               padding: '0.5rem 0.85rem',
               borderRadius: 'var(--radius-sm)',
@@ -256,11 +329,13 @@ export const ManageMarks = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '0.35rem',
-              background: activeTab === 'single' ? 'var(--grad-accent)' : 'transparent',
-              color: activeTab === 'single' ? '#fff' : 'var(--text-secondary)',
+              background: activeTab === 'bulk-entry' ? 'linear-gradient(135deg, #0284c7, #0369a1)' : 'transparent',
+              color: activeTab === 'bulk-entry' ? '#fff' : 'var(--text-secondary)',
+              border: 'none',
+              cursor: 'pointer',
             }}
           >
-            <PlusCircle size={16} /> Individual Entry
+            <ClipboardList size={16} /> In-Page Bulk Entry
           </button>
 
           <button
@@ -275,9 +350,30 @@ export const ManageMarks = () => {
               gap: '0.35rem',
               background: activeTab === 'bulk' ? 'var(--grad-warning)' : 'transparent',
               color: activeTab === 'bulk' ? '#fff' : 'var(--text-secondary)',
+              border: 'none',
+              cursor: 'pointer',
             }}
           >
             <FileSpreadsheet size={16} /> Bulk Excel Upload
+          </button>
+
+          <button
+            onClick={() => setActiveTab('single')}
+            style={{
+              padding: '0.5rem 0.85rem',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: activeTab === 'single' ? 'var(--grad-accent)' : 'transparent',
+              color: activeTab === 'single' ? '#fff' : 'var(--text-secondary)',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <PlusCircle size={16} /> Individual Entry
           </button>
         </div>
       </div>
@@ -397,7 +493,166 @@ export const ManageMarks = () => {
         </div>
       )}
 
-      {/* TAB 2: INDIVIDUAL STUDENT ENTRY */}
+      {/* TAB 2: IN-PAGE BULK ENTRY */}
+      {activeTab === 'bulk-entry' && (
+        <div className="card glass-panel" style={{ padding: '0' }}>
+          <div
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid var(--border-color)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                <ClipboardList size={20} color="var(--primary-400)" />
+                Direct Class Marks Entry Grid
+              </h3>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0 0' }}>
+                Quickly input and save evaluation scores for all students in this class at once.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Assessment:</label>
+                <select
+                  className="form-select"
+                  style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }}
+                  value={bulkAssessmentType}
+                  onChange={(e) => setBulkAssessmentType(e.target.value)}
+                >
+                  <option value="CIA-1">CIA - 1</option>
+                  <option value="CIA-2">CIA - 2</option>
+                  <option value="CIA-3">CIA - 3</option>
+                  <option value="Model Exam">Model Examination</option>
+                  <option value="Assignment">Assignment / Seminar</option>
+                  <option value="Semester Exam">End Semester Examination</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Max Marks:</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  style={{ width: '80px', padding: '0.4rem 0.6rem', fontSize: '0.85rem' }}
+                  value={bulkEntryMaxMarks}
+                  onChange={(e) => setBulkEntryMaxMarks(Number(e.target.value))}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleBulkEntrySubmit}
+                disabled={savingBulkEntries}
+                className="btn btn-primary"
+                style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <Save size={16} />
+                {savingBulkEntries ? 'Saving Marks...' : 'Save All Marks'}
+              </button>
+            </div>
+          </div>
+
+          {/* Students List in selected class */}
+          {classStudents.length === 0 && students.length === 0 ? (
+            <EmptyState
+              title="No Students Found"
+              description="No students have enrolled or been assigned to this class group yet."
+            />
+          ) : (
+            <div className="table-container" style={{ border: 'none', borderRadius: '0' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '60px' }}>#</th>
+                    <th>Register Number</th>
+                    <th>Student Name</th>
+                    <th style={{ width: '220px' }}>
+                      Marks Obtained (Max: {bulkEntryMaxMarks})
+                    </th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(classStudents.length > 0 ? classStudents : students).map((st, idx) => {
+                    const val = bulkStudentScores[st.id] ?? '';
+                    const isFilled = val !== '' && !isNaN(val);
+                    return (
+                      <tr key={st.id}>
+                        <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{st.reg_no}</td>
+                        <td style={{ fontWeight: 600 }}>{st.full_name}</td>
+                        <td>
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            max={bulkEntryMaxMarks}
+                            placeholder="e.g. 18.5"
+                            className="form-input"
+                            style={{
+                              padding: '0.4rem 0.75rem',
+                              width: '130px',
+                              borderColor: isFilled ? 'var(--accent-cyan)' : 'var(--border-color)',
+                            }}
+                            value={val}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setBulkStudentScores((prev) => ({ ...prev, [st.id]: v }));
+                            }}
+                          />
+                        </td>
+                        <td>
+                          {isFilled ? (
+                            <Badge variant="cyan">Entered</Badge>
+                          ) : (
+                            <Badge variant="amber">Pending</Badge>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div
+                style={{
+                  padding: '1rem 1.5rem',
+                  borderTop: '1px solid var(--border-color)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: 'rgba(0,0,0,0.1)',
+                }}
+              >
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Total Students: <strong>{(classStudents.length > 0 ? classStudents : students).length}</strong> | Entered:{' '}
+                  <strong style={{ color: 'var(--accent-cyan)' }}>
+                    {Object.values(bulkStudentScores).filter((v) => v !== '' && !isNaN(v)).length}
+                  </strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBulkEntrySubmit}
+                  disabled={savingBulkEntries}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <Save size={16} />
+                  {savingBulkEntries ? 'Saving Marks...' : 'Submit & Save All Marks'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: INDIVIDUAL STUDENT ENTRY */}
       {activeTab === 'single' && (
         <div className="card glass-panel" style={{ maxWidth: '650px', margin: '0 auto', padding: '2rem' }}>
           <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

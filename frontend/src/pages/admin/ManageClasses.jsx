@@ -18,6 +18,8 @@ import {
 
 export const ManageClasses = () => {
   const [classes, setClasses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [deptFilter, setDeptFilter] = useState('ALL');
   const [subjects, setSubjects] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -28,9 +30,13 @@ export const ManageClasses = () => {
   const [showEditClassModal, setShowEditClassModal] = useState(false);
   const [showEditSubjectModal, setShowEditSubjectModal] = useState(false);
 
-  // Form states
-  const [className, setClassName] = useState('');
-  const [department, setDepartment] = useState('Computer Applications');
+  // Form states for Create Class
+  const [className, setClassName] = useState('A');
+  const [department, setDepartment] = useState('B.Tech (AI&DS)');
+  const [classYear, setClassYear] = useState('2nd Year');
+  const [classSection, setClassSection] = useState('A');
+  const [namingFormat, setNamingFormat] = useState('section'); // 'section' ("A") or 'year_section' ("2nd Year - A")
+
   const [subjectName, setSubjectName] = useState('');
   const [subjectClassId, setSubjectClassId] = useState('');
   
@@ -42,9 +48,10 @@ export const ManageClasses = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [classList, subList] = await Promise.allSettled([
+      const [classList, subList, deptList] = await Promise.allSettled([
         academicApi.getClasses(),
         academicApi.getSubjects(selectedClassId ? parseInt(selectedClassId, 10) : null),
+        academicApi.getDepartments(),
       ]);
 
       if (classList.status === 'fulfilled' && Array.isArray(classList.value)) {
@@ -61,6 +68,13 @@ export const ManageClasses = () => {
       } else {
         setSubjects([]);
       }
+
+      if (deptList.status === 'fulfilled' && Array.isArray(deptList.value)) {
+        setDepartments(deptList.value);
+        if (deptList.value.length > 0 && !department) {
+          setDepartment(deptList.value[0].name);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -72,10 +86,10 @@ export const ManageClasses = () => {
 
   const handleCreateClass = async (e) => {
     e.preventDefault();
+    const finalName = namingFormat === 'year_section' ? `${classYear} - ${classSection}` : classSection;
     try {
-      await academicApi.createClass({ name: className, department });
-      toast.success(`Class group "${className}" created successfully!`);
-      setClassName('');
+      await academicApi.createClass({ name: finalName, department });
+      toast.success(`Class "${finalName}" added to ${department} successfully!`);
       setShowClassModal(false);
       fetchData();
     } catch (err) {
@@ -195,12 +209,30 @@ export const ManageClasses = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
             }}
           >
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
               <Building size={18} color="var(--primary-400)" />
-              Active Classes ({classes.length})
+              Active Classes ({classes.filter(c => deptFilter === 'ALL' || c.department === deptFilter).length})
             </h3>
+
+            {/* Department Filter */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Dept:</span>
+              <select
+                className="form-select"
+                style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem', minWidth: '150px' }}
+                value={deptFilter}
+                onChange={(e) => setDeptFilter(e.target.value)}
+              >
+                <option value="ALL">All Departments</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="table-container" style={{ border: 'none', borderRadius: '0' }}>
@@ -208,13 +240,15 @@ export const ManageClasses = () => {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Class Name</th>
+                  <th>Class / Section</th>
                   <th>Department</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {classes.map((c, idx) => (
+                {classes
+                  .filter((c) => deptFilter === 'ALL' || c.department === deptFilter)
+                  .map((c, idx) => (
                   <tr key={c.id || idx}>
                     <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
                     <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{c.name}</td>
@@ -332,34 +366,116 @@ export const ManageClasses = () => {
       <Modal
         isOpen={showClassModal}
         onClose={() => setShowClassModal(false)}
-        title="Create New Academic Class Section"
+        title="Create Academic Class (Department A / B)"
       >
         <form onSubmit={handleCreateClass}>
-          <div className="form-group">
-            <label className="form-label">Class / Section Name *</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Enter class name"
-              value={className}
-              onChange={(e) => setClassName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
+          {/* Department Selection */}
+          <div className="form-group" style={{ marginBottom: '1rem' }}>
             <label className="form-label">Department *</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Enter department name"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              required
-            />
+            {departments.length > 0 ? (
+              <select
+                className="form-select"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                required
+              >
+                {departments.map((d) => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. B.Tech (AI&DS) or B.E (CSE)"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                required
+              />
+            )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+          {/* Academic Year */}
+          <div className="form-grid-2" style={{ marginBottom: '1rem' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Year / Semester *</label>
+              <select
+                className="form-select"
+                value={classYear}
+                onChange={(e) => setClassYear(e.target.value)}
+                required
+              >
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+              </select>
+            </div>
+
+            {/* Class Section (A / B / C / D) */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Class Section *</label>
+              <select
+                className="form-select"
+                value={classSection}
+                onChange={(e) => setClassSection(e.target.value)}
+                required
+              >
+                <option value="A">Class A</option>
+                <option value="B">Class B</option>
+                <option value="C">Class C</option>
+                <option value="D">Class D</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Naming format option */}
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+            <label className="form-label">Class Name Stored As:</label>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="namingFormat"
+                  value="section"
+                  checked={namingFormat === 'section'}
+                  onChange={() => setNamingFormat('section')}
+                />
+                Section Only (e.g. &quot;{classSection}&quot;)
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="namingFormat"
+                  value="year_section"
+                  checked={namingFormat === 'year_section'}
+                  onChange={() => setNamingFormat('year_section')}
+                />
+                Year &amp; Section (e.g. &quot;{classYear} - {classSection}&quot;)
+              </label>
+            </div>
+          </div>
+
+          {/* Preview Banner */}
+          <div
+            style={{
+              background: 'rgba(99, 102, 241, 0.08)',
+              border: '1px solid rgba(99, 102, 241, 0.25)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.75rem 1rem',
+              marginBottom: '1.5rem',
+              fontSize: '0.85rem',
+            }}
+          >
+            <span style={{ color: 'var(--text-muted)' }}>Preview: </span>
+            <strong style={{ color: 'var(--primary-400)' }}>
+              {namingFormat === 'year_section' ? `${classYear} - ${classSection}` : classSection}
+            </strong>
+            <span style={{ color: 'var(--text-muted)' }}> under </span>
+            <strong style={{ color: 'var(--text-primary)' }}>{department}</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
             <button
               type="button"
               className="btn btn-secondary"

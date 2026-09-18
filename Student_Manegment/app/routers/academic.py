@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -25,11 +26,12 @@ router = APIRouter()
 
 @router.post("/departments", response_model=DepartmentResponse)
 def create_department(payload: DepartmentCreateRequest, db: Session = Depends(get_db), current=Depends(require_admin)):
-    existing = db.query(Department).filter(Department.name == payload.name).first()
+    clean_name = payload.name.strip()
+    existing = db.query(Department).filter(func.lower(Department.name) == clean_name.lower()).first()
     if existing:
         raise HTTPException(status_code=400, detail="Department already exists")
     
-    dept = Department(name=payload.name)
+    dept = Department(name=clean_name)
     db.add(dept)
     db.commit()
     db.refresh(dept)
@@ -41,11 +43,24 @@ def list_departments(db: Session = Depends(get_db)):
 
 @router.post("/classes", response_model=ClassResponse)
 def create_class(payload: ClassCreateRequest, db: Session = Depends(get_db), current=Depends(require_admin)):
-    existing = db.query(ClassGroup).filter(ClassGroup.name == payload.name).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Class already exists")
+    clean_name = payload.name.strip()
+    clean_dept = payload.department.strip() if payload.department else None
 
-    class_group = ClassGroup(name=payload.name, department=payload.department)
+    # Check composite uniqueness: (name, department)
+    query = db.query(ClassGroup).filter(func.lower(ClassGroup.name) == clean_name.lower())
+    if clean_dept:
+        query = query.filter(func.lower(ClassGroup.department) == clean_dept.lower())
+    else:
+        query = query.filter(ClassGroup.department.is_(None))
+
+    existing = query.first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Class '{clean_name}' already exists in department '{clean_dept or 'General'}'.",
+        )
+
+    class_group = ClassGroup(name=clean_name, department=clean_dept)
     db.add(class_group)
     db.commit()
     db.refresh(class_group)
@@ -53,8 +68,11 @@ def create_class(payload: ClassCreateRequest, db: Session = Depends(get_db), cur
 
 
 @router.get("/classes", response_model=List[ClassResponse])
-def list_classes(db: Session = Depends(get_db)):
-    return db.query(ClassGroup).all()
+def list_classes(department: Optional[str] = None, db: Session = Depends(get_db)):
+    query = db.query(ClassGroup)
+    if department:
+        query = query.filter(func.lower(ClassGroup.department) == department.strip().lower())
+    return query.all()
 
 
 @router.post("/subjects", response_model=SubjectResponse)

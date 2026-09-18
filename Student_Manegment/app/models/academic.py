@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -12,11 +12,14 @@ class Department(Base):
 
 
 class ClassGroup(Base):
-    """A class section, e.g. 'III BCA - A'"""
+    """A class section, e.g. 'A' or '2nd Year - A' within a department"""
     __tablename__ = "classes"
+    __table_args__ = (
+        UniqueConstraint("name", "department", name="uq_class_dept"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), unique=True, nullable=False)  # e.g. "III BCA - A"
+    name = Column(String(50), nullable=False)
     department = Column(String(100), nullable=True)
 
     subjects = relationship("Subject", back_populates="class_group")

@@ -64,12 +64,14 @@ export const LoginPage = ({
   return (
     <div
       style={{
-        height: '100vh',
+        minHeight: '100vh',
+        width: '100%',
         background: 'var(--bg-main)',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden',
         position: 'relative',
+        overflowX: 'hidden',
+        overflowY: 'auto',
       }}
     >
       <div className="global-bg-watermark" />
@@ -81,11 +83,13 @@ export const LoginPage = ({
       />
 
       <div
-        className="page-content-scroll"
         style={{
+          flex: 1,
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          padding: '2rem 1.5rem',
+          alignItems: 'center',
+          padding: '2rem 1.5rem 5rem 1.5rem',
           position: 'relative',
         }}
       >
@@ -93,7 +97,7 @@ export const LoginPage = ({
           style={{
             width: '100%',
             maxWidth: '460px',
-            margin: 'auto',
+            margin: '0 auto',
           }}
         >
         {/* Card */}
